@@ -1,0 +1,29 @@
+{
+  "name": "@rxify/pg",
+  "version": "1.0.0",
+  "description": "RxJS wrapper for \"pg\"",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alexander Porrello",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "pg": "^8.12.0",
+    "pg-cursor": "^2.11.0",
+    "pg-protocol": "^1.6.1",
+    "pg-query-stream": "^4.6.0",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/pg": "^8.11.6",
+    "@types/pg-cursor": "^2.7.2",
+    "@types/pg-query-stream": "^3.4.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.4",
+    "typescript": "^5.4.5"
+  }
+}

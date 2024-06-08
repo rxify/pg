@@ -1,0 +1,41 @@
+{
+    "json.schemas": [],
+    "workbench.iconTheme": "material-icon-theme",
+    "material-icon-theme.files.associations": {
+        "*.decorator.ts": "edge",
+        "*.schema.ts": "gradle",
+        "*.types.ts": "tsconfig",
+        ".editorconfig": "settings",
+        "tsconfig.build.json": "parcel",
+        "tsconfig.json": "typescript",
+        "tsconfig.spec.json": "test-ts"
+    },
+    "material-icon-theme.folders.associations": {
+        ".old": "archive",
+        "rxjs": "redux-reducer",
+        "lib": "src"
+    },
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "typescript.suggest.completeFunctionCalls": false,
+    "typescript.suggest.completeJSDocs": true,
+    "typescript.preferences.quoteStyle": "single",
+    "typescript.format.semicolons": "insert",
+    "typescript.format.insertSpaceBeforeFunctionParenthesis": false,
+    "typescript.format.insertSpaceBeforeAndAfterBinaryOperators": true,
+    "typescript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": false,
+    "prettier.enable": true,
+    "prettier.requireConfig": true,
+    "prettier.configPath": "./.prettierrc",
+    "prettier.ignorePath": "./.prettierignore",
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "references.preferredLocation": "peek",
+    "search.followSymlinks": false,
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/*.code-search": true,
+        "**/.*": true,
+        "**/dist": true
+    }
+}
