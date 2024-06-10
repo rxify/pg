@@ -1,36 +1,4 @@
-# compiled output
-**/*dist
-**/*dist*
-**/*.tmp
-**/*public
-**/*.public
-**/*.zip
-**/*.d.ts
-**/*.d.ts.map
-**/*.js
-**/*.js.map
-**/*.tsbuildinfo
-
-packages/.cli
-packages/node
-
-
-# dependencies
+**/dist
 **/node_modules
-
-# misc
-.project
-.classpath
-/coverage
-npm-debug.log
-testem.log
 .DS_Store
 Thumbs.db
-.parcel-cache
-
-# include
-!tools/**/*.js
-!packages/cli/**/*.js
-!packages/cli/**/*.d.ts
-!cli/**/*.js
-!cli/**/*.d.ts

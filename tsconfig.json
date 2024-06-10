@@ -12,6 +12,11 @@
         "types": [
             "jest"
         ],
+        "paths": {
+            "~/*": [
+                "src/lib/*"
+            ]
+        },
         "baseUrl": "packages",
         "declaration": true,
         "declarationMap": true,
@@ -40,6 +45,6 @@
         "isolatedModules": true
     },
     "include": [
-        "src/index.ts"
+        "src/**/*.ts"
     ]
 }

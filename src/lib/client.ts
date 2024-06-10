@@ -1,39 +1,58 @@
 import pg from 'pg';
 import { Observable, Subject, take } from 'rxjs';
-import {
+import type {
     QueryArrayConfig,
     QueryArrayResult,
     QueryConfig,
     QueryConfigValues,
     QueryResult,
     QueryResultRow,
-    isQueryArrayConfig,
-    isQueryConfig,
     Notification
 } from './types.js';
+import { isQueryArrayConfig, isQueryConfig } from './types.js';
 import { NoticeMessage } from 'pg-protocol/dist/messages.js';
+
+declare type ClientDetails = {
+    host: string;
+    port: number;
+    database?: string | undefined;
+};
 
 export class Client {
     protected _clientNative: pg.Client;
 
-    constructor(config?: string | pg.Client | undefined) {
+    constructor(config?: string | pg.ClientConfig | undefined) {
         this._clientNative = new pg.Client(config);
     }
 
-    connect(): Observable<void> {
-        return new Observable<void>((subscriber) => {
+    get details(): ClientDetails {
+        return {
+            host: this._clientNative.host,
+            port: this._clientNative.port,
+            database: this._clientNative.database
+        };
+    }
+
+    connect(): Observable<ClientDetails> {
+        return new Observable((subscriber) => {
             this._clientNative
                 .connect()
-                .then(() => subscriber.complete())
+                .then(() => {
+                    subscriber.next(this.details);
+                    subscriber.complete();
+                })
                 .catch((reason) => subscriber.error(reason));
         });
     }
 
     end() {
-        return new Observable<void>((subscriber) => {
+        return new Observable<ClientDetails>((subscriber) => {
             this._clientNative
                 .end()
-                .then(() => subscriber.complete())
+                .then(() => {
+                    subscriber.next(this.details);
+                    subscriber.complete();
+                })
                 .catch((reason) => subscriber.error(reason));
         });
     }
