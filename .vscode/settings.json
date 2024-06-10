@@ -1,20 +1,11 @@
 {
-    "json.schemas": [],
     "workbench.iconTheme": "material-icon-theme",
     "material-icon-theme.files.associations": {
-        "*.decorator.ts": "edge",
-        "*.schema.ts": "gradle",
-        "*.types.ts": "tsconfig",
-        ".editorconfig": "settings",
         "tsconfig.build.json": "parcel",
         "tsconfig.json": "typescript",
         "tsconfig.spec.json": "test-ts"
     },
-    "material-icon-theme.folders.associations": {
-        ".old": "archive",
-        "rxjs": "redux-reducer",
-        "lib": "src"
-    },
+    "material-icon-theme.folders.associations": {},
     "editor.formatOnSave": true,
     "editor.formatOnPaste": true,
     "typescript.suggest.completeFunctionCalls": false,
@@ -29,7 +20,6 @@
     "prettier.configPath": "./.prettierrc",
     "prettier.ignorePath": "./.prettierignore",
     "typescript.tsdk": "node_modules/typescript/lib",
-    "references.preferredLocation": "peek",
     "search.followSymlinks": false,
     "search.exclude": {
         "**/node_modules": true,
