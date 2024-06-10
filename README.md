@@ -1,54 +1,80 @@
 # `@rxify/pg`
 
 Provides RxJS wrappers for [node-postgres](https://www.npmjs.com/package/pg).
-
-We've attempted to implement the core feature set of `node-postgres`, including...
-
--   Client
-
-    -   `connect(): Observable<void>`
-    -   `end(): Observable<void>`
-    -   `query`:
-
-        -   ```typescript
-            query<R extends any[] = any[], I = any[]>(
-                queryConfig: QueryArrayConfig<I>,
-                values?: QueryConfigValues<I>
-            ): Observable<QueryArrayResult<R>>;
-            ```
-        -   ```typescript
-            query<R extends QueryResultRow = any, I = any>(
-             queryConfig: QueryConfig<I>
-            ): Observable<QueryResult<R>>;
-            ```
-        -   ```typescript
-            query<R extends QueryResultRow = any, I = any[]>(
-                queryTextOrConfig: string | QueryConfig<I>,
-                values?: QueryConfigValues<I> | undefined
-            ): Observable<QueryResult<R>>;
-            ```
-
--   Pool
--   QueryStream
-
 If you identify any missing features or identify bugs,
 [open a PR](https://github.com/rxify/pg/pulls) or submit
 [a feature request or bug report](https://github.com/rxify/pg/issues).
 
-## Note on Testing
+## API
+
+The following are common between `Client` and `Pool`.
+
+| Method           | Description                                                     | Returns                                                                                               |
+| ---------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `connect`        | Opens database connection.                                      | Observable<ClientDetails>                                                                             |
+| `end`            | Ends database connection.                                       | Observable<ClientDetails>                                                                             |
+| `query`          | Queries connected database.                                     | `Observable<QueryResult>`<br>`Observable<QueryArrayResult>`                                           |
+| `once`           | Subscribes to events that complete after one event is observed. | `Observable<void>`<br>`Observable<Error>`<br>`Observable<NoticeMessage>`<br>`Observable<Noticiation>` |
+| `unsubscribe`    | Unsubscribes from event subjects.                               | `this`                                                                                                |
+| `onDrain`        | Subscribes to `drain` events.                                   | `Subject<void>`                                                                                       |
+| `onEnd`          | Subscribes to `end` events.                                     | `Subject<void>`                                                                                       |
+| `onError`        | Subscribes to `error` events.                                   | `Subject<Error>`                                                                                      |
+| `onNotice`       | Subscribes to `notice` events.                                  | `Subject<NoticeMessage>`                                                                              |
+| `onNotification` | Subscribes to `notification` events.                            | `Subject<Notification>`                                                                               |
+
+## Examples
+
+### Query a Database Table
+
+```typescript
+new Client()
+    .connect()
+    .pipe(
+        concatMap((client) =>
+            client.query(`SELECT * FROM my_table`).pipe(concatMap(client.end))
+        )
+    )
+    .subscribe({
+        next: (result) => {
+            console.log(
+                `Query succeeded. Returned ${result.rows.length} rows.`
+            );
+            console.table(result.rows);
+        },
+        error: (err) => {
+            console.error('Query failed:');
+            console.error(err);
+        }
+    });
+```
+
+## Testing
 
 This library uses the [`@databases/pg`](https://www.atdatabases.org/docs/pg-test)
-library to test. When we implemented the
-[Jest hooks outlined in their docs](https://www.atdatabases.org/docs/pg-test#jest),
-we ran into an issue where the database is closed before tests complete.
-While we're working on implementing the Jest hooks, run the following command
+library to test. Before testing, you need to run the following commands to
+start the test database and initialize the database:
+
+```bash
+npm run db:start
+npm run db:init
+```
+
+This will spin up a docker database instance and run an init script that creates
+test tables, inserts their data, and creates test functions.
+
+### Unit Tests
+
+When we implemented the
+[Jest hooks outlined in the `@databases/pg` docs](https://www.atdatabases.org/docs/pg-test#jest),
+we ran into an issue where the database is spun down before tests complete.
+While we're working on fixing this issue, run the following command
 before running tests:
 
 ```
 npm run db:start
 ```
 
-After tests have completed, execute...
+After tests have completed, run...
 
 ```
 npm run db:stop

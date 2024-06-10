@@ -1,11 +1,15 @@
-export * from './lib/client.js';
-export * from './lib/pool.js';
-export * from './lib/query.js';
-export { isQueryArrayConfig, isQueryConfig } from './lib/types.js';
-export * from './lib/query-stream.js';
+export { Client } from './lib/client.js';
+export { Pool } from './lib/pool.js';
+export { sql } from './lib/sql.js';
+export { stream } from './lib/stream.js';
+export {
+    isClient,
+    isPoolClient,
+    isQueryArrayConfig,
+    isQueryConfig
+} from './lib/types.js';
 export type {
     ClientConfig,
-    Falsy,
     Notification,
     PoolClient,
     QueryArrayConfig,
@@ -14,5 +18,5 @@ export type {
     QueryConfigValues,
     QueryResult,
     QueryResultRow,
-    Submittable
+    QueryStreamConfig
 } from './lib/types.js';

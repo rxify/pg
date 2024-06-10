@@ -1,18 +1,7 @@
 import pg from 'pg';
 import { Observable, Subject } from 'rxjs';
-import {
-    PoolClient,
-    QueryArrayConfig,
-    QueryArrayResult,
-    QueryConfig,
-    QueryConfigValues,
-    QueryResult,
-    QueryResultRow,
-    QueryStreamConfig,
-    isQueryArrayConfig,
-    isQueryConfig
-} from './types.js';
-import QueryStream from 'pg-query-stream';
+
+import { PoolClient } from './pool-client.js';
 
 export class Pool {
     private _poolNative: pg.Pool;
@@ -33,88 +22,37 @@ export class Pool {
         return this._poolNative.waitingCount;
     }
 
-    connect(): Observable<PoolClient> {
-        return new Observable<PoolClient>((subscriber) => {
+    /**
+     * Opens a database connection using the options
+     * defined in the constructor.
+     */
+    connect() {
+        return new Observable<{
+            pool: Pool;
+            client: PoolClient;
+        }>((subscriber) => {
             this._poolNative
                 .connect()
                 .then((response) => {
-                    subscriber.next(response);
+                    subscriber.next({
+                        pool: this,
+                        client: new PoolClient(response)
+                    });
                     subscriber.complete();
                 })
                 .catch((reason) => subscriber.error(reason));
         });
     }
 
-    stream<T>(
-        client: pg.Client,
-        text: string,
-        values?: any[],
-        config?: QueryStreamConfig
-    ): Observable<T> {
-        return new Observable<T>((subscriber) => {
-            const query = new QueryStream(text, values, config);
-            const stream = client.query(query);
-            stream
-                .on('data', (row) => {
-                    subscriber.next(row);
-                })
-                .on('error', (err) => {
-                    subscriber.error(err);
-                })
-                .on('end', () => {
-                    subscriber.complete();
-                })
-                .on('close', () => {
-                    subscriber.complete();
-                });
-        });
-    }
-
+    /**
+     * Closes the connection pool.
+     */
     end() {
         return new Observable<void>((subscriber) => {
             this._poolNative
                 .end()
                 .then(() => subscriber.complete())
                 .catch((reason) => subscriber.error(reason));
-        });
-    }
-
-    query<T extends any[] = any[], I = any[]>(
-        queryConfig: QueryArrayConfig<I>,
-        values?: QueryConfigValues<I> | undefined
-    ): Observable<QueryArrayResult<T>>;
-
-    query<T extends QueryResultRow = any, I = any>(
-        queryConfig: QueryConfig<I>
-    ): Observable<QueryResult<T>>;
-
-    query<T extends QueryResultRow = any, I = any[]>(
-        queryTextOrConfig: string | QueryConfig<I>,
-        values?: QueryConfigValues<I> | undefined
-    ): Observable<QueryResult<T>>;
-
-    query(
-        queryText: string | QueryConfig<any> | QueryArrayConfig<any>,
-        values?: QueryConfigValues<any>
-    ): Observable<any> {
-        const selectQuery = () => {
-            if (isQueryConfig(queryText))
-                return this._poolNative.query(queryText, values);
-            if (isQueryArrayConfig(queryText))
-                return this._poolNative.query(queryText, values);
-
-            return this._poolNative.query(queryText, values);
-        };
-
-        return new Observable<any>((subscriber) => {
-            selectQuery()
-                .then((result) => {
-                    subscriber.next(result);
-                    subscriber.complete();
-                })
-                .catch((reason) => {
-                    subscriber.error(reason);
-                });
         });
     }
 
@@ -154,8 +92,8 @@ export class Pool {
     public get onConnect(): Subject<PoolClient> {
         if (this._connect) return this._connect;
         this._connect = new Subject();
-        this._poolNative.on('connect', (client: PoolClient) =>
-            this._connect?.next(client)
+        this._poolNative.on('connect', (client) =>
+            this._connect?.next(new PoolClient(client))
         );
         return this._connect;
     }
@@ -164,7 +102,9 @@ export class Pool {
     public get onAquire(): Subject<PoolClient> {
         if (this._aquire) return this._aquire;
         this._aquire = new Subject();
-        this._poolNative.on('acquire', (pool) => this._aquire?.next(pool));
+        this._poolNative.on('acquire', (pool) =>
+            this._aquire?.next(new PoolClient(pool))
+        );
         return this._aquire;
     }
 
@@ -172,8 +112,8 @@ export class Pool {
     public get onRemove(): Subject<PoolClient> {
         if (this._remove) return this._remove;
         this._remove = new Subject();
-        this._poolNative.on('remove', (client: PoolClient) =>
-            this._remove?.next(client)
+        this._poolNative.on('remove', (pool) =>
+            this._remove?.next(new PoolClient(pool))
         );
         return this._remove;
     }

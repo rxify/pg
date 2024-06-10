@@ -1,13 +1,23 @@
 {
-  "name": "@rxify/pg",
-  "version": "1.0.0",
+  "name": "@rx-ify/pg",
+  "version": "1.1.0",
   "description": "RxJS wrapper for \"pg\"",
-  "main": "index.js",
+  "main": "public-api.js",
   "type": "module",
+  "homepage": "https://github.com/rxify/pg#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rxify/pg.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rxify/pg/issues",
+    "email": "alexporrello@gmail.com"
+  },
   "scripts": {
-    "build": "npx tsc && node postbuild.js",
+    "build": "npx tsc && node tools/postbuild.js",
     "build:watch": "npx tsc --watch",
     "build:prod": "rimraf dist && npm run build",
+    "publish": "cd dist && npm publish --access public",
     "db:start": "npx pg-test start",
     "db:init": "node tools/db-init.js",
     "db:stop": "npx pg-test stop",
@@ -16,10 +26,7 @@
   "author": "Alexander Porrello",
   "license": "MIT",
   "dependencies": {
-    "chalk": "^5.3.0",
-    "ora": "^8.0.1",
     "pg": "^8.12.0",
-    "pg-cursor": "^2.11.0",
     "pg-protocol": "^1.6.1",
     "pg-query-stream": "^4.6.0",
     "rxjs": "^7.8.1"
@@ -28,14 +35,13 @@
     "@databases/pg": "^5.5.0",
     "@databases/pg-test": "^3.1.2",
     "@databases/pg-typed": "^4.4.1",
-    "@types/execa": "^2.0.0",
     "@types/jest": "^29.5.5",
     "@types/pg": "^8.11.6",
-    "@types/pg-cursor": "^2.7.2",
     "@types/pg-query-stream": "^3.4.0",
     "@types/ping": "^0.4.4",
-    "execa": "^9.2.0",
+    "chalk": "^5.3.0",
     "jest": "^29.7.0",
+    "ora": "^8.0.1",
     "ping": "^0.4.4",
     "rimraf": "^5.0.7",
     "ts-jest": "^29.1.1",

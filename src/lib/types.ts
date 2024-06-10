@@ -1,33 +1,39 @@
 import pg from 'pg';
 
 export declare type Falsy = undefined | null;
-export declare type QueryConfig<I = any[]> = pg.QueryConfig<I>;
-export declare type QueryResult<R extends pg.QueryResultRow = any> =
-    pg.QueryResult<R>;
-export declare type QueryArrayConfig<I = any[]> = pg.QueryArrayConfig<I>;
-export declare type QueryConfigValues<I = any[]> = pg.QueryConfigValues<I>;
-export declare type QueryArrayResult<R extends any[] = any[]> =
-    pg.QueryArrayResult<R>;
-export declare type QueryResultRow = pg.QueryResultRow;
-export declare type Submittable = pg.Submittable;
-export declare type ClientConfig = pg.ClientConfig;
-export declare type Notification = pg.Notification;
+export declare type Truthy<T> = NonNullable<T>;
+
+/** Safely assert that val is truthy. */
+export const isTruthy = <T>(val: T | Falsy): val is Truthy<T> =>
+    val !== undefined && val !== null;
+
+/** Safely assert that val is an object and is truthy. */
+export const isTruthyObj = <T extends object>(
+    val: T | Falsy
+): val is Truthy<T> => isTruthy(val) && typeof val === 'object';
+
+export declare type Client = pg.Client;
 export declare type PoolClient = pg.PoolClient;
+export declare type ClientConfig = pg.ClientConfig;
+
+/** Safely assert the val is a `Client` */
+export const isClient = (val: any): val is pg.Client => {
+    return isTruthy(val) && val instanceof pg.Client;
+};
+
+/** Safely assert that val is a `PoolClient` */
+export const isPoolClient = (val: any): val is pg.PoolClient => {
+    return isClient(val) && 'release' in val;
+};
+
+export declare type QueryConfig<I = any[]> = pg.QueryConfig<I>;
+export declare type QueryConfigValues<I = any[]> = pg.QueryConfigValues<I>;
+export declare type QueryArrayConfig<I = any[]> = pg.QueryArrayConfig<I>;
 export declare type QueryStreamConfig = {
     batchSize?: number;
     highWaterMark?: number;
     rowMode?: 'array';
     types?: any;
-};
-
-export const isTruthy = <T>(val: T | Falsy): val is NonNullable<T> => {
-    return val !== undefined && val !== null;
-};
-
-export const isTruthyObj = <T extends object>(
-    val: T | Falsy
-): val is NonNullable<T> => {
-    return val !== undefined && val !== null && typeof val === 'object';
 };
 
 /** Safely assert that `val` is a `QueryConfig`. */
@@ -41,3 +47,12 @@ export const isQueryArrayConfig = <I = any[]>(
 ): val is QueryArrayConfig<I> => {
     return isTruthyObj(val) && 'text' in val && 'rowMode' in val;
 };
+
+export declare type QueryResultRow = pg.QueryResultRow;
+export declare type QueryResult<T extends QueryResultRow = any> =
+    pg.QueryResult<T>;
+export declare type QueryArrayResult<R extends any[] = any[]> =
+    pg.QueryArrayResult<R>;
+
+export declare type Submittable = pg.Submittable;
+export declare type Notification = pg.Notification;
