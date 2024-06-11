@@ -10,7 +10,8 @@
         ],
         "incremental": true,
         "types": [
-            "jest"
+            "jest",
+            "node"
         ],
         "paths": {
             "~/*": [

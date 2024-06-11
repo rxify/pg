@@ -3,7 +3,8 @@ import { ClientBase } from './client-base.js';
 import { ClientConfig, isClient } from './types.js';
 
 /**
- * This does stuff.
+ * The RxJS wrapper for `pg.Client`.
+ *
  * @example
  * // Query a database with client
  * new Client()
@@ -43,7 +44,7 @@ import { ClientConfig, isClient } from './types.js';
  *              // Emits individual rows
  *          },
  *          complete: () => {
- *              // Complete is called when all rows have been emitted
+ *              // Complete is called when all rows have been read
  *          }
  *      });
  *

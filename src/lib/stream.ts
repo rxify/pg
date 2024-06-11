@@ -10,13 +10,13 @@ import { QueryStreamConfig } from './types.js';
  * @param values Values correlating to the query string
  * @param config A query stream configuration object
  */
-export const stream = <T>(
+export function stream<T>(
     client: pg.Client | pg.PoolClient,
     text: string,
     values?: any[],
     config?: QueryStreamConfig
-): Observable<T> =>
-    new Observable<T>((subscriber) => {
+): Observable<T> {
+    return new Observable<T>((subscriber) => {
         const query = new QueryStream(text, values, config);
         const stream = client.query(query);
         stream
@@ -25,3 +25,4 @@ export const stream = <T>(
             .on('end', () => subscriber.complete())
             .on('close', () => subscriber.complete());
     });
+}
