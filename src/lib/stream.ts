@@ -9,6 +9,8 @@ import { QueryStreamConfig } from './types.js';
  * @param text A query string
  * @param values Values correlating to the query string
  * @param config A query stream configuration object
+ *
+ * @publicApi
  */
 export function stream<T>(
     client: pg.Client | pg.PoolClient,

@@ -3,6 +3,8 @@
  * VS Code extension.
  * @param sql An sql string
  * @returns The string trimmed
+ *
+ * @publicApi
  */
 export const sql = (sql: ReadonlyArray<string>) => {
     return sql[0].trim();

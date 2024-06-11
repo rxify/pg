@@ -6,5 +6,9 @@
     },
     "entryPoints": [
         "src/public-api.ts"
+    ],
+    "searchInComments": true,
+    "sort": [
+        "source-order"
     ]
 }

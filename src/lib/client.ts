@@ -48,6 +48,7 @@ import { ClientConfig, isClient } from './types.js';
  *          }
  *      });
  *
+ * @publicApi
  */
 export class Client extends ClientBase {
     constructor(config?: string | ClientConfig) {
