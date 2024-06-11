@@ -1,6 +1,6 @@
 {
-  "name": "@rx-ify/pg",
-  "version": "1.1.0",
+  "name": "@rxifyjs/pg",
+  "version": "1.0.0",
   "description": "RxJS wrapper for \"pg\"",
   "main": "public-api.js",
   "type": "module",
@@ -17,6 +17,7 @@
     "build": "npx tsc && node tools/postbuild.js",
     "build:watch": "npx tsc --watch",
     "build:prod": "rimraf dist && npm run build",
+    "build:docs": "npx typedoc src/public-api.ts --out ./docs",
     "publish": "cd dist && npm publish --access public",
     "db:start": "npx pg-test start",
     "db:init": "node tools/db-init.js",
@@ -35,6 +36,8 @@
     "@databases/pg": "^5.5.0",
     "@databases/pg-test": "^3.1.2",
     "@databases/pg-typed": "^4.4.1",
+    "@microsoft/api-documenter": "^7.25.3",
+    "@microsoft/api-extractor": "^7.47.0",
     "@types/jest": "^29.5.5",
     "@types/pg": "^8.11.6",
     "@types/pg-query-stream": "^3.4.0",
@@ -46,6 +49,8 @@
     "rimraf": "^5.0.7",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
+    "typedoc": "^0.25.13",
+    "typedoc-plugin-markdown": "^4.0.3",
     "typescript": "^5.4.5"
   }
 }

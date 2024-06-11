@@ -1,26 +1,15 @@
-# `@rxify/pg`
+# @rxifyjs/pg
 
-Provides RxJS wrappers for [node-postgres](https://www.npmjs.com/package/pg).
-If you identify any missing features or identify bugs,
+Provides [RxJS](https://www.npmjs.com/package/rxjs) wrappers for
+[node-postgres](https://www.npmjs.com/package/pg).
+
+We have attempted to create wrappers for most of the functionality that is
+required for middle tier of an application, including one-off client creation,
+connection pooling, and query streaming.
+
+If you identify any missing features or bugs,
 [open a PR](https://github.com/rxify/pg/pulls) or submit
 [a feature request or bug report](https://github.com/rxify/pg/issues).
-
-## API
-
-The following are common between `Client` and `Pool`.
-
-| Method           | Description                                                     | Returns                                                                                               |
-| ---------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `connect`        | Opens database connection.                                      | Observable<ClientDetails>                                                                             |
-| `end`            | Ends database connection.                                       | Observable<ClientDetails>                                                                             |
-| `query`          | Queries connected database.                                     | `Observable<QueryResult>`<br>`Observable<QueryArrayResult>`                                           |
-| `once`           | Subscribes to events that complete after one event is observed. | `Observable<void>`<br>`Observable<Error>`<br>`Observable<NoticeMessage>`<br>`Observable<Noticiation>` |
-| `unsubscribe`    | Unsubscribes from event subjects.                               | `this`                                                                                                |
-| `onDrain`        | Subscribes to `drain` events.                                   | `Subject<void>`                                                                                       |
-| `onEnd`          | Subscribes to `end` events.                                     | `Subject<void>`                                                                                       |
-| `onError`        | Subscribes to `error` events.                                   | `Subject<Error>`                                                                                      |
-| `onNotice`       | Subscribes to `notice` events.                                  | `Subject<NoticeMessage>`                                                                              |
-| `onNotification` | Subscribes to `notification` events.                            | `Subject<Notification>`                                                                               |
 
 ## Examples
 

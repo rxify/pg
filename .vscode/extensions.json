@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "yzhang.markdown-all-in-one",
-        "forbeslindesay.vscode-sql-template-literal"
+        "forbeslindesay.vscode-sql-template-literal",
+        "bierner.jsdoc-markdown-highlighting"
     ]
 }

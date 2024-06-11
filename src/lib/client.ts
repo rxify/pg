@@ -2,6 +2,52 @@ import { Observable } from 'rxjs';
 import { ClientBase } from './client-base.js';
 import { ClientConfig, isClient } from './types.js';
 
+/**
+ * This does stuff.
+ * @example
+ * // Query a database with client
+ * new Client()
+ *      .connect()
+ *      .pipe(
+ *          concatMap((client) =>
+ *              client.query(`SELECT * FROM my_table`).pipe(concatMap(client.end))
+ *          )
+ *      )
+ *      .subscribe({
+ *          next: (result) => {
+ *              console.log(
+ *                  `Query succeeded. Returned ${result.rows.length} rows.`
+ *              );
+ *              console.table(result.rows);
+ *          },
+ *          error: (err) => {
+ *              console.error('Query failed:');
+ *              console.error(err);
+ *          }
+ *      });
+ *
+ * @example
+ * // Stream rows from a client query
+ * new Client(testDbParams)
+ *      .connect()
+ *      .pipe(
+ *          concatMap((client) =>
+ *              client
+ *                  .stream(sql`SELECT * FROM get_animals()`)
+ *                  // Use finalize to end the connection after all rows are returned
+ *                  .pipe(finalize(() => client.end().subscribe()))
+ *              )
+ *      )
+ *      .subscribe({
+ *          next: (val) => {
+ *              // Emits individual rows
+ *          },
+ *          complete: () => {
+ *              // Complete is called when all rows have been emitted
+ *          }
+ *      });
+ *
+ */
 export class Client extends ClientBase {
     constructor(config?: string | ClientConfig) {
         super(config);
