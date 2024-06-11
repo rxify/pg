@@ -11,31 +11,7 @@ If you identify any missing features or bugs,
 [open a PR](https://github.com/rxify/pg/pulls) or submit
 [a feature request or bug report](https://github.com/rxify/pg/issues).
 
-## Examples
-
-### Query a Database Table
-
-```typescript
-new Client()
-    .connect()
-    .pipe(
-        concatMap((client) =>
-            client.query(`SELECT * FROM my_table`).pipe(concatMap(client.end))
-        )
-    )
-    .subscribe({
-        next: (result) => {
-            console.log(
-                `Query succeeded. Returned ${result.rows.length} rows.`
-            );
-            console.table(result.rows);
-        },
-        error: (err) => {
-            console.error('Query failed:');
-            console.error(err);
-        }
-    });
-```
+For detailed documentation, visit [our GitHub page](https://rxify.github.io/pg/).
 
 ## Testing
 

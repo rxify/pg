@@ -3,5 +3,8 @@
         "includeCategories": true,
         "includeGroups": true,
         "includeFolders": true
-    }
+    },
+    "entryPoints": [
+        "src/public-api.ts"
+    ]
 }
