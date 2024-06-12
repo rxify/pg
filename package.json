@@ -1,6 +1,6 @@
 {
   "name": "@rxifyjs/pg",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "RxJS wrapper for \"pg\"",
   "main": "public-api.js",
   "type": "module",
