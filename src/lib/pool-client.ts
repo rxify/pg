@@ -1,7 +1,16 @@
 import pg from 'pg';
 import { ClientBase } from './client-base.js';
 import { Observable } from 'rxjs';
-import { isPoolClient } from './types.js';
+import { isPgPoolClient, isTruthy } from './types.js';
+
+/** Safely assert that `val` is a `PoolClient`. */
+export const isPoolClient = (val: any): val is PoolClient => {
+    try {
+        return isTruthy(val) && 'release' in val;
+    } catch {
+        return false;
+    }
+};
 
 /**
  * The RxJS wrapper for `pg.PoolClient`.
@@ -35,7 +44,7 @@ export class PoolClient extends ClientBase {
 
     release<T>(result?: T) {
         return new Observable((subscriber) => {
-            if (isPoolClient(this._clientNative)) {
+            if (isPgPoolClient(this._clientNative)) {
                 try {
                     this._clientNative.release(true);
                     subscriber.next(result ?? this);

@@ -10,7 +10,7 @@ import type {
     QueryCursorResult,
     QueryCursorRow
 } from './types.js';
-import { isClient, isPoolClient } from './types.js';
+import { isPgClient, isPgPoolClient } from './types.js';
 import { NoticeMessage } from 'pg-protocol/dist/messages.js';
 import { stream } from './stream.js';
 import { executeCursorQuery } from './cursor.js';
@@ -23,7 +23,7 @@ export class ClientBase {
     protected _clientNative: pg.Client | pg.PoolClient;
 
     constructor(config?: string | ClientConfig | pg.PoolClient) {
-        if (isClient(config) || isPoolClient(config)) {
+        if (isPgClient(config) || isPgPoolClient(config)) {
             this._clientNative = config;
         } else {
             this._clientNative = new pg.Client(config);

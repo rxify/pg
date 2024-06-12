@@ -15,13 +15,13 @@ export const isTruthyObj = <T extends object>(
 export declare type ClientConfig = pg.ClientConfig;
 
 /** Safely assert the val is a `Client` */
-export const isClient = (val: any): val is pg.Client => {
+export const isPgClient = (val: any): val is pg.Client => {
     return isTruthy(val) && val instanceof pg.Client;
 };
 
 /** Safely assert that val is a `PoolClient` */
-export const isPoolClient = (val: any): val is pg.PoolClient => {
-    return isClient(val) && 'release' in val;
+export const isPgPoolClient = (val: any): val is pg.PoolClient => {
+    return isTruthy(val) && 'release' in val;
 };
 
 export declare type QueryConfigValues<I = any[]> = pg.QueryConfigValues<I>;

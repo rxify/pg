@@ -1,6 +1,15 @@
 import { Observable } from 'rxjs';
 import { ClientBase } from './client-base.js';
-import { ClientConfig, isClient } from './types.js';
+import { ClientConfig, isPgClient, isTruthy } from './types.js';
+
+/** Safely assert that `val` is a `Client`. */
+export const isClient = (val: any): val is Client => {
+    try {
+        return isTruthy(val) && 'end' in val;
+    } catch {
+        return false;
+    }
+};
 
 /**
  * The RxJS wrapper for `pg.Client`.
@@ -72,7 +81,7 @@ export class Client extends ClientBase {
 
     end<T>(results?: T) {
         return new Observable<T | this>((subscriber) => {
-            if (isClient(this._clientNative)) {
+            if (isPgClient(this._clientNative)) {
                 this._clientNative
                     .end()
                     .then(() => {
