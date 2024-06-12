@@ -12,8 +12,6 @@ export const isTruthyObj = <T extends object>(
     val: T | Falsy
 ): val is Truthy<T> => isTruthy(val) && typeof val === 'object';
 
-export declare type Client = pg.Client;
-export declare type PoolClient = pg.PoolClient;
 export declare type ClientConfig = pg.ClientConfig;
 
 /** Safely assert the val is a `Client` */
@@ -26,7 +24,6 @@ export const isPoolClient = (val: any): val is pg.PoolClient => {
     return isClient(val) && 'release' in val;
 };
 
-export declare type QueryConfig<I = any[]> = pg.QueryConfig<I>;
 export declare type QueryConfigValues<I = any[]> = pg.QueryConfigValues<I>;
 export declare type QueryArrayConfig<I = any[]> = pg.QueryArrayConfig<I>;
 export declare type QueryStreamConfig = {
@@ -34,6 +31,12 @@ export declare type QueryStreamConfig = {
     highWaterMark?: number;
     rowMode?: 'array';
     types?: any;
+};
+export declare type CustomTypesConfig = pg.CustomTypesConfig;
+export declare type QueryConfig<I = any[]> = {
+    text: string;
+    values?: QueryConfigValues<I>;
+    types?: CustomTypesConfig | undefined;
 };
 
 /** Safely assert that `val` is a `QueryConfig`. */
@@ -53,6 +56,13 @@ export declare type QueryResult<T extends QueryResultRow = any> =
     pg.QueryResult<T>;
 export declare type QueryArrayResult<R extends any[] = any[]> =
     pg.QueryArrayResult<R>;
+export declare type QueryCursorResult = {
+    cursor: string;
+} & pg.QueryResult<any>;
+export declare type QueryCursorRow<T = any> = {
+    cursor: string;
+    value: T;
+};
 
 export declare type Submittable = pg.Submittable;
 export declare type Notification = pg.Notification;

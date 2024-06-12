@@ -10,7 +10,9 @@ describe('Client RxJS wrapper', () => {
             .pipe(
                 concatMap((client) =>
                     client
-                        .query(`SELECT * FROM animals`)
+                        .query({
+                            text: `SELECT * FROM animals`
+                        })
                         .pipe(concatMap((result) => client.end(result)))
                 )
             )
@@ -48,7 +50,9 @@ describe('Client RxJS wrapper', () => {
             });
 
             client
-                .query(sql`SELECT * FROM get_animals()`)
+                .query({
+                    text: sql`SELECT * FROM get_animals()`
+                })
                 .pipe(concatMap((results) => client.end(results)))
                 .subscribe(() => {
                     expect(_notice).toBeTruthy();
@@ -63,7 +67,10 @@ describe('Client RxJS wrapper', () => {
             .pipe(
                 concatMap((client) =>
                     client
-                        .stream(sql`SELECT * FROM get_animals()`)
+                        .query({
+                            text: sql`SELECT * FROM get_animals()`,
+                            stream: true
+                        })
                         .pipe(finalize(() => client.end().subscribe()))
                 )
             )
@@ -72,6 +79,56 @@ describe('Client RxJS wrapper', () => {
                     expect(val).toEqual({
                         index: expect.any(String),
                         name: expect.any(String)
+                    });
+                },
+                complete: () => done()
+            });
+    });
+
+    test('Can stream query cursor results', (done) => {
+        new Client(testDbParams)
+            .connect()
+            .pipe(
+                concatMap((client) =>
+                    client
+                        .query({
+                            text: sql`SELECT * FROM get_animals_cursor()`,
+                            stream: true,
+                            returnsCursors: true
+                        })
+                        .pipe(finalize(() => client.end().subscribe()))
+                )
+            )
+            .subscribe({
+                next: (val) => {
+                    expect(val).toEqual({
+                        cursor: expect.any(String),
+                        value: expect.any(Object)
+                    });
+                },
+                complete: () => done()
+            });
+    });
+
+    test('Can return query cursor results', (done) => {
+        new Client(testDbParams)
+            .connect()
+            .pipe(
+                concatMap((client) =>
+                    client
+                        .query({
+                            text: sql`SELECT * FROM get_animals_cursor()`,
+                            stream: true,
+                            returnsCursors: true
+                        })
+                        .pipe(finalize(() => client.end().subscribe()))
+                )
+            )
+            .subscribe({
+                next: (val) => {
+                    expect(val).toEqual({
+                        cursor: expect.any(String),
+                        value: expect.any(Object)
                     });
                 },
                 complete: () => done()

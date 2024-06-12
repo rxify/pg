@@ -5,6 +5,8 @@ import { ClientConfig, isClient } from './types.js';
 /**
  * The RxJS wrapper for `pg.Client`.
  *
+ * @extends ClientBase
+ *
  * @example
  * // Query a database with client
  * new Client()

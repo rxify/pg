@@ -6,6 +6,8 @@ import { isPoolClient } from './types.js';
 /**
  * The RxJS wrapper for `pg.PoolClient`.
  *
+ * @extends ClientBase
+ *
  * @note A `PoolClient` is created automatically when `connect` is called
  * from within `Pool`. This class is nearly identical to `Client`,
  * except `Client`, except a standalone client is disconnected with `end()`,

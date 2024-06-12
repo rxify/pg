@@ -1,7 +1,7 @@
 import QueryStream from 'pg-query-stream';
 import pg from 'pg';
 import { Observable } from 'rxjs';
-import { QueryStreamConfig } from './types.js';
+import { CustomTypesConfig, QueryConfigValues } from './types.js';
 
 /**
  * Streams values from a query.
@@ -12,14 +12,24 @@ import { QueryStreamConfig } from './types.js';
  *
  * @publicApi
  */
-export function stream<T>(
+export function stream<T, I = any[]>(
     client: pg.Client | pg.PoolClient,
-    text: string,
-    values?: any[],
-    config?: QueryStreamConfig
+    config: {
+        text: string;
+        values?: QueryConfigValues<I>;
+        types?: CustomTypesConfig;
+        batchSize?: number;
+        highWaterMark?: number;
+        rowMode?: 'array';
+    }
 ): Observable<T> {
     return new Observable<T>((subscriber) => {
-        const query = new QueryStream(text, values, config);
+        const query = new QueryStream(config.text, config.values, {
+            types: config.types,
+            batchSize: config.batchSize,
+            highWaterMark: config.highWaterMark,
+            rowMode: config.rowMode
+        });
         const stream = client.query(query);
         stream
             .on('data', (row) => subscriber.next(row))

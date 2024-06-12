@@ -5,9 +5,7 @@ Provides [RxJS](https://www.npmjs.com/package/rxjs) wrappers for
 
 We have attempted to create wrappers for most of the functionality that is
 required for the middle tier of an application, including
-connection pooling, query streaming, and one-off client creation.
-
-Our **next milestone** is turnkey cursor support.
+connection pooling, cursors, query streaming, and one-off client creation.
 
 If you identify a missing features or bug,
 [open a PR](https://github.com/rxify/pg/pulls) or submit

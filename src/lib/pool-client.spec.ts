@@ -12,7 +12,9 @@ describe('PoolClient RxJS wrapper', () => {
                     const { client } = val;
 
                     return client
-                        .query(sql`SELECT * FROM animals`)
+                        .query({
+                            text: sql`SELECT * FROM animals`
+                        })
                         .pipe(concatMap((result) => client.release(result)));
                 }),
                 finalize(() => pool.end())
@@ -48,16 +50,20 @@ describe('PoolClient RxJS wrapper', () => {
         const pool = new Pool(testDbParams);
         of(...new Array(10).fill(sql`SELECT * FROM animals`))
             .pipe(
-                mergeMap((query) =>
+                mergeMap((query: string) =>
                     pool.connect().pipe(
                         concatMap((res) => {
                             const { client } = res;
-                            return client.query(query).pipe(
-                                concatMap((result) => {
-                                    count += 1;
-                                    return client.release(result);
+                            return client
+                                .query({
+                                    text: query
                                 })
-                            );
+                                .pipe(
+                                    concatMap((results) => {
+                                        count += 1;
+                                        return client.release(results);
+                                    })
+                                );
                         })
                     )
                 )

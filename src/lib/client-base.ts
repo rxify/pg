@@ -1,25 +1,24 @@
 import pg from 'pg';
 import { Observable, Subject, take } from 'rxjs';
 import type {
-    QueryArrayConfig,
-    QueryArrayResult,
     QueryConfig,
-    QueryConfigValues,
     QueryResult,
     QueryResultRow,
     Notification,
     QueryStreamConfig,
-    ClientConfig
+    ClientConfig,
+    QueryCursorResult,
+    QueryCursorRow
 } from './types.js';
-import {
-    isClient,
-    isPoolClient,
-    isQueryArrayConfig,
-    isQueryConfig
-} from './types.js';
+import { isClient, isPoolClient } from './types.js';
 import { NoticeMessage } from 'pg-protocol/dist/messages.js';
 import { stream } from './stream.js';
+import { executeCursorQuery } from './cursor.js';
+import { streamCursorQuery } from './stream-cursor.js';
 
+/**
+ * Defines the base functionality for clients.
+ */
 export class ClientBase {
     protected _clientNative: pg.Client | pg.PoolClient;
 
@@ -48,50 +47,103 @@ export class ClientBase {
     }
 
     /**
-     * Queries the database to which `Client` is connected.
-     * @param queryConfig A query configuration object
-     * @param values Dynamic values that correspond to the query
-     * defined in `queryConfig`.
-     */
-    query<T extends any[] = any[], I = any[]>(
-        queryConfig: QueryArrayConfig<I>,
-        values?: QueryConfigValues<I> | undefined
-    ): Observable<QueryArrayResult<T>>;
-
-    /**
-     * Queries the database to which `Client` is connected.
-     * @param queryConfig A query configuration object
-     */
-    query<T extends QueryResultRow = any, I = any>(
-        queryConfig: QueryConfig<I>
-    ): Observable<QueryResult<T>>;
-
-    /**
-     * Queries the database to which `Client` is connected.
-     * @param queryConfig A query configuration object or query string
-     * @param values Dynamic values that correspond to the query
-     * defined in `queryConfig`.
+     * Queries a database, returning query results after
+     * all results have been returned.
+     * @param config Defines query parameters
      */
     query<T extends QueryResultRow = any, I = any[]>(
-        queryTextOrConfig: string | QueryConfig<I>,
-        values?: QueryConfigValues<I> | undefined
+        config: QueryConfig<I> & {
+            returnsCursors?: false;
+            stream?: false;
+        }
     ): Observable<QueryResult<T>>;
 
-    query(
-        queryText: string | QueryConfig<any> | QueryArrayConfig<any>,
-        values?: QueryConfigValues<any>
-    ): Observable<any> {
-        const selectQuery = () => {
-            if (isQueryConfig(queryText))
-                return this._clientNative.query(queryText, values);
-            if (isQueryArrayConfig(queryText))
-                return this._clientNative.query(queryText, values);
+    /**
+     * Queries a database, streaming query results as
+     * they are read.
+     * @param config Defines query parameters
+     */
+    query<T = any, I = any[]>(
+        config: QueryConfig<I> &
+            QueryStreamConfig & {
+                returnsCursors?: false;
+                stream: true;
+            }
+    ): Observable<T>;
 
-            return this._clientNative.query(queryText, values);
+    /**
+     * Queries a database, returning query results by cursor
+     * after cursor has read all rows.
+     * @param config Defines query parameters
+     */
+    query<I = any[]>(
+        config: QueryConfig<I> & {
+            returnsCursors: true;
+            stream?: false;
+        }
+    ): Observable<QueryCursorResult>;
+
+    /**
+     * Queries a database, streaming query results as
+     * cursor reads rows.
+     * @param config Defines query parameters
+     */
+    query<I = any[]>(
+        config: QueryConfig<I> &
+            QueryStreamConfig & {
+                returnsCursors: true;
+                stream: true;
+            }
+    ): Observable<QueryCursorRow>;
+
+    query(
+        config: QueryConfig<any> &
+            QueryStreamConfig & {
+                returnsCursors?: boolean;
+                stream?: boolean;
+            }
+    ): Observable<any> {
+        const streamOptions: QueryStreamConfig = {
+            highWaterMark: config.highWaterMark,
+            rowMode: config.rowMode,
+            types: config.types,
+            batchSize: config.batchSize
         };
 
+        // The query returns cursors
+        if (config.returnsCursors) {
+            // And the user specified to stream the query results
+            if (config.stream) {
+                return streamCursorQuery(this._clientNative, {
+                    text: config.text,
+                    values: config.values,
+                    ...streamOptions
+                });
+            }
+
+            // And the user specified to return the query results
+            return executeCursorQuery(
+                this._clientNative,
+                config.text,
+                config.values
+            );
+        }
+
+        // The query does not return cursors, and the user
+        // specified to stream the results
+        if (config.stream) {
+            return stream<any>(this._clientNative, {
+                text: config.text,
+                values: config.values,
+                ...streamOptions
+            });
+        }
+
+        // The query does not return cursors, and the user
+        // did not specify to stream the results
         return new Observable<any>((subscriber) => {
-            selectQuery()
+            this._clientNative
+                .query(config.text, config.values)
                 .then((result) => {
                     subscriber.next(result);
                     subscriber.complete();
@@ -100,20 +152,6 @@ export class ClientBase {
                     subscriber.error(reason);
                 });
         });
-    }
-
-    /**
-     * Streams values from a query.
-     * @param text A query string
-     * @param values Values correlating to the query string
-     * @param config A query stream configuration object
-     */
-    public stream<T = any>(
-        text: string,
-        values?: any[],
-        config?: QueryStreamConfig
-    ) {
-        return stream<T>(this._clientNative, text, values, config);
     }
 
     /**

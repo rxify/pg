@@ -50,6 +50,25 @@ const fn = () =>
             SELECT * FROM animals;
     END $$
 `);
+const fnCursor = () =>
+    client.query(sql`
+    CREATE OR REPLACE FUNCTION get_animals_cursor()
+    RETURNS SETOF refcursor
+    LANGUAGE plpgsql
+    AS $$
+    DECLARE
+        cursor_a refcursor := 'cursor_a';
+        cursor_b refcursor := 'cursor_b';
+    BEGIN
+        OPEN cursor_a FOR
+            SELECT * FROM animals;
+        RETURN NEXT cursor_a;
+
+        OPEN cursor_b FOR
+            SELECT * FROM animals;
+        RETURN NEXT cursor_b;
+    END $$
+`);
 const test = () => client.query(sql`SELECT * FROM get_animals()`);
 
 await oraPromise(client.connect(), {
@@ -77,6 +96,11 @@ await oraPromise(insert(), {
 await oraPromise(fn(), {
     text: 'Creating test function...',
     successText: 'Test function "get_animals" created',
+    failText: 'Failed to create test function; unit tests will not pass'
+});
+await oraPromise(fnCursor(), {
+    text: 'Creating test function...',
+    successText: 'Test function "get_animals_cursor" created',
     failText: 'Failed to create test function; unit tests will not pass'
 });
 const queryRes = await oraPromise(test(), {

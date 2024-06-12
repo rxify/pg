@@ -114,10 +114,19 @@ export class Pool {
      * Closes the connection pool.
      */
     end() {
-        return new Observable<void>((subscriber) => {
+        return new Observable<{
+            totalCount: number;
+            waitingCount: number;
+        }>((subscriber) => {
             this._poolNative
                 .end()
-                .then(() => subscriber.complete())
+                .then(() => {
+                    subscriber.next({
+                        totalCount: this._poolNative.totalCount,
+                        waitingCount: this._poolNative.waitingCount
+                    });
+                    subscriber.complete();
+                })
                 .catch((reason) => subscriber.error(reason));
         });
     }
