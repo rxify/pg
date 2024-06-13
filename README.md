@@ -16,66 +16,83 @@ For detailed documentation, visit [our GitHub page](https://rxify.github.io/pg/)
 
 ## CLI
 
-`pg-runner` is an awesome and lightweight alternative to Postgres IDEs,
-providing developers with the ability to run local SQL scripts and queries
+`pg-runner` is a lightweight alternative to Postgres IDEs.
+It provides developers with the ability to run SQL scripts and queries
 directly from their VSCode terminal.
 
-For details about what the CLI can do, run `pg-runner --help` after installation.
-In the meantime, we've provided a few examples below.
+### Options
+
+| Option      | Alias | Description                                         |
+| ----------- | ----- | --------------------------------------------------- |
+| `--script`  | `-s`  | Execute a script wrapped in double quotes.          |
+| `--path`    | `-p`  | Provide a path to a local `.sql` script to execute. |
+| `--format`  | `-f`  | The format of the results printed to the console.   |
+| `--values`  | `-v`  | Provide dynamic values.                             |
+| `--cursors` |       | Flag indicating that `-s` or `-p` returns cursors.  |
+| `--psql`    |       | Opens a psql session.                               |
 
 ### Examples
 
-If you are developing a function in a local file--let's call it
-`get_all_users.sql`--you can execute the script with the following command:
+#### `--script`
 
 ```bash
-$ sql-runner --path ./get_all_users.sql
+$ pg-runner --script "SELECT * FROM my_table"
+SELECT RETURNED n rows.
+┌─────────┬────────────┬───────────┬──────────┐
+│ (index) │  column_a  │ column_b  │ column_n │
+├─────────┼────────────┼───────────┼──────────┤
+│    1    │  'aa_val'  │ 'ab_val'  │ 'an_val' │
+│    2    │  'ba_val'  │ 'bb_val'  │ 'bn_val' │
+│    n    │  'na_val'  │ 'nb_val'  │ 'nn_val' │
+└─────────┴────────────┴───────────┴──────────┘
 ```
 
-If after running the script you want to call it in the database, you can run:
+#### `--path`
 
 ```bash
-$ sql-runner --script "SELECT * FROM get_all_users()"
-SELECT RETURNED 2 rows.
-┌─────────┬────────────┬─────────────┬────────────────┐
-│ (index) │  username  │ first_name  │   last_name    │
-├─────────┼────────────┼─────────────┼────────────────┤
-│    1    │   'JDOE'   │   'Jane'    │     'Doe'      │
-│    2    │  'JSMITH'  │   'John'    │    'Smith'     │
-└─────────┴────────────┴─────────────┴────────────────┘
+$ pg-runner --path "./my-script.sql"
+SELECT RETURNED n rows.
+┌─────────┬────────────┬───────────┬──────────┐
+│ (index) │  column_a  │ column_b  │ column_n │
+├─────────┼────────────┼───────────┼──────────┤
+│    1    │  'aa_val'  │ 'ab_val'  │ 'an_val' │
+│    2    │  'ba_val'  │ 'bb_val'  │ 'bn_val' │
+│    n    │  'na_val'  │ 'nb_val'  │ 'nn_val' │
+└─────────┴────────────┴───────────┴──────────┘
 ```
 
-#### Cursors
+#### `--cursors`
 
-If you query includes cursors, include the `--cursors` flag in your command,
-and `pg-runner` will automatically execute the script and `FETCH ALL`
-from each returned cursor:
+When you include the `--cursors` flag, the `pg-runner` assums
+that the query's initial result set is the cursors.
+It then calls `FETCH ALL` on each cursor returned by the initial query.
 
 ```bash
 $ sql-runner --script "SELECT * FROM get_all_users()" --cursors
 ```
 
-#### Dynamic Values
+#### `--values`
 
-For scripts that accept arguments, you can pass them dynamically
-by using the `--values` option, which accepts space-separated values:
+For scripts that accept arguments, you pass parameters with the
+`--values` option, which accepts a list of space-separated values:
 
 ```bash
 $ sql-runner --script "SELECT * FROM get_user_by_lastname(\$1)" --values Smith
 $ sql-runner --script "SELECT * FROM get_user_by_lastname_firstname(\$1, \$2)" --values Smith John
 ```
 
-**NOTE:** Do not forget to escape your references (i.e. `"\$1"` instead of `"$1"`).
+It is important to note that you must escape the parameters; for example,
+do not enter `"$1"`, enter `"\$1"`.
 
 ### Installation
 
-To use `pg-runner` globally, run...
+You can use `pg-runner` globally by running the following command:
 
 ```bash
 $ npm install -g @rxifyjs/pg
 ```
 
-If you want to use `pg-runner` in your project, you can...
+If you only want to use `pg-runner` in your application, you can run...
 
 ```bash
 $ npm install --save @rxifyjs/pg

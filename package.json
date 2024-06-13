@@ -33,6 +33,7 @@
   "author": "Alexander Porrello",
   "license": "MIT",
   "dependencies": {
+    "inquirer": "^9.2.23",
     "pg": "^8.12.0",
     "pg-protocol": "^1.6.1",
     "pg-query-stream": "^4.6.0",
