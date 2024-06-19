@@ -7,10 +7,14 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
         const text = document.getText();
         const commands = parse(text, document.uri.path).map((lensPoint) => {
             return codeLens(
-                lensPoint.startLine,
-                lensPoint.title,
-                lensPoint.command,
-                lensPoint.arg
+                lensPoint.start.lineNum,
+                'Run',
+                'extension.runSql',
+                {
+                    cursors: lensPoint.cursors ?? false,
+                    stmt: lensPoint.text,
+                    description: lensPoint.description
+                }
             );
         });
 

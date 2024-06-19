@@ -1,146 +1,185 @@
-import { ExecDoc, ExecStmt, LensPoint, isTruthy } from './types';
-import { Token, tokenize } from './tokenize';
+import { Token, TokenType, tokenize } from './tokenize';
+import { PgSyntaxError } from './parser/syntax-error';
+
+export declare type StatementType = 'select' | 'create';
+export declare type StatementSubType = 'table' | 'schema' | 'function';
+export declare type StatementPosition = {
+    lineNum: number;
+    index: number;
+};
+export declare type Statement = {
+    text: string;
+    type: StatementType;
+    subType?: StatementSubType;
+    start: StatementPosition;
+    end: StatementPosition;
+    comments: string[];
+    cursors?: boolean;
+    description?: string;
+};
+
+const _ = (val: string) => val.toLowerCase();
 
 export function parse(sql: string, source: string) {
     const tokens = tokenize(sql, source);
+    const statements: Statement[] = [];
 
-    /**
-     * Consumes tokens until `consumeUntil` returns `false`.
-     * @param token
-     * @param consumeUntil The end condition for token consumption
-     * @returns A concatenated string of all tokens consumed
-     */
-    const consume = (consumeUntil: (char: Token) => boolean) => {
-        let token: Token | undefined;
-        do {
-            token = tokens.shift();
-        } while (token && !consumeUntil(token));
+    let stmtIndex = 0;
+    let cursor = -1;
+    let token = tokens[cursor];
 
+    const error = (message: string) =>
+        new PgSyntaxError(cursor, sql, source, message);
+
+    const stepForward = () => {
+        cursor = cursor + 1;
+        token = tokens[cursor];
         return token;
     };
 
-    const statements: Token[][] = [];
+    const stepBack = () => {
+        if (cursor - 1 >= 0) cursor = cursor - 1;
+        token = tokens[cursor];
+        return token;
+    };
 
-    let stmtIndex = 0;
-    let token: Token | undefined;
+    const consumeWhile = (consume: (char: Token) => boolean) => {
+        let index = 0;
+        let lineNum = 0;
 
-    do {
-        token = tokens.shift();
-        statements[stmtIndex] ??= [];
+        while (consume(stepForward())) {
+            index = token.position;
+            lineNum = token.lineNum;
+        }
 
+        stepBack();
+
+        return { index, lineNum };
+    };
+
+    const initStatement = (type: StatementType) => {
+        statements[stmtIndex] ??= <Statement>{};
+        statements[stmtIndex].type = type;
+        statements[stmtIndex].start = {
+            index: token.position,
+            lineNum: token.lineNum
+        };
+    };
+
+    const completeStatement = (consume: (char: Token) => boolean) => {
+        const { index, lineNum } = consumeWhile(consume);
+
+        statements[stmtIndex].end = {
+            index,
+            lineNum
+        };
+        statements[stmtIndex].text = sql.slice(
+            statements[stmtIndex].start.index,
+            index + tokens[cursor].value.length
+        );
+
+        stmtIndex = stmtIndex + 1;
+    };
+
+    const expect = (type: TokenType, expected?: string) => {
+        const isType = token.type === type;
+        const isVal = expected ? _(token.value) === _(expected) : true;
+
+        return isType && isVal;
+    };
+
+    while (stepForward()) {
         if (!token) continue;
 
+        // Add comments to the current statement
         if (
+            token.type === 'comment' ||
             token.type === 'describe' ||
-            token.type === 'returns' ||
-            token.type === 'import'
+            token.type === 'returns'
         ) {
-            statements[stmtIndex].push(token);
-        } else if (token.type === '$') {
-            let startIndex = token.position - 'create'.length;
+            const commentVal = token.value;
 
-            consume((token) => token.type === 'unknown');
+            // Init this statement if it hasn't been already
+            statements[stmtIndex] ??= <Statement>{};
 
-            const end = consume((token) => token.value === ';');
-            const start = sql.slice(0, startIndex);
-            const script = sql.slice(
-                startIndex,
-                end ? end.position + 1 : undefined
-            );
-
-            statements[stmtIndex].push({
-                position: startIndex,
-                lineNum: start.split(/\n/g).length - 1,
-                type: 'unknown',
-                value: script
-            });
-
-            stmtIndex++;
-        } else if (token.type === 'unknown') {
-            let startIndex = token.position - 'select'.length;
-
-            const end = consume(
-                (token) => token.value.endsWith(';') || token.value === ';'
-            );
-            const start = sql.slice(0, startIndex);
-            const script = sql.slice(
-                startIndex,
-                end ? end.position + 1 : undefined
-            );
-
-            statements[stmtIndex].push({
-                position: startIndex,
-                lineNum: start.split(/\n/g).length - 1,
-                type: 'function',
-                value: script
-            });
-
-            stmtIndex++;
+            if (token.value.includes('@returns')) {
+                statements[stmtIndex].cursors = token.value.includes('cursors');
+            } else if (token.value.includes('@describe')) {
+                statements[stmtIndex].description = commentVal;
+            } else {
+                statements[stmtIndex].comments ??= [];
+                statements[stmtIndex].comments.push(commentVal);
+            }
         }
-    } while (token !== undefined);
 
-    return statements
-        .map((statement) => {
-            if (statement.length === 1) {
-                const stmt = statement[0];
+        // CREATE
+        if (expect('reserved', 'create')) {
+            initStatement('create');
+            stepForward();
 
-                const wholeFileLens: LensPoint<ExecStmt> = {
-                    arg: {
-                        stmt: stmt.value.trim(),
-                        cursors: false
-                    },
-                    command: 'extension.runSql',
-                    startLine: stmt.lineNum,
-                    title: 'Run'
-                };
-
-                return wholeFileLens;
+            // CREATE SCHEMA
+            if (expect('reserved', 'schema')) {
+                statements[stmtIndex].subType = 'table';
+                completeStatement(
+                    (token) =>
+                        token.type !== 'punctuation' && token.value !== ';'
+                );
+                continue;
             }
 
-            const imports: string[] = [];
-            let lens: LensPoint<ExecDoc | ExecStmt> | undefined;
-            let startLine: number;
-            let returnsCursors = false;
-            let description: string;
+            // CREATE TABLE
+            if (expect('reserved', 'table')) {
+                completeStatement(
+                    (token) =>
+                        token.type !== 'punctuation' && token.value !== ';'
+                );
+                continue;
+            }
 
-            statement.forEach((stmt) => {
-                if (
-                    ['describe', 'import', 'returns', 'comment'].includes(
-                        stmt.type
-                    )
-                ) {
-                    startLine ??= stmt.lineNum;
+            const consumeFunction = () => {
+                statements[stmtIndex].subType === 'function';
+                consumeWhile((token) => _(token.value) !== 'end');
+                stepForward();
+                completeStatement((token) => token.value !== ';');
+            };
 
-                    switch (stmt.type) {
-                        case 'describe':
-                            description = stmt.value;
-                            break;
-                        case 'import':
-                            imports.push(stmt.value);
-                            break;
-                        case 'returns':
-                            if (stmt.value.includes('cursor'))
-                                returnsCursors = true;
-                            break;
+            // CREATE OR
+            if (expect('reserved', 'or')) {
+                stepForward();
+
+                // CREATE OR REPLACE
+                if (expect('reserved', 'replace')) {
+                    stepForward();
+
+                    // CREATE OR REPLACE FUNCTION
+                    if (expect('reserved', 'function')) {
+                        consumeFunction();
+                        continue;
                     }
-                } else {
-                    startLine ??= stmt.lineNum;
 
-                    lens = {
-                        command: 'extension.runSql',
-                        startLine: startLine,
-                        title: 'Run',
-                        arg: {
-                            stmt: stmt.value.trim(),
-                            cursors: returnsCursors,
-                            description
-                        }
-                    };
+                    throw error(`Expected "function"; received ${token.value}`);
                 }
-            });
 
-            if (!lens) return;
-            return lens;
-        })
-        .filter(isTruthy);
+                throw error(`Expected "replace"; received ${token.value}`);
+            }
+
+            if (expect('reserved', 'function')) {
+                consumeFunction();
+                continue;
+            }
+
+            throw error(
+                `Expected "function" or "or"; received ${token.value}.`
+            );
+        }
+
+        // SELECT
+        if (expect('reserved', 'select')) {
+            initStatement('select');
+            completeStatement((token) => token.value !== ';');
+            continue;
+        }
+    }
+
+    return statements;
 }

@@ -116,7 +116,7 @@ export function tokenize(raw: string, source: string) {
 
         // Check for dynamic refs and function delimiter
         if (/\$/.test(char)) {
-            const val = consume((char) => char !== '$');
+            const val = consume((char) => char === '$');
             addToken(val, '$');
             continue;
         }
