@@ -10,11 +10,74 @@ import type {
     QueryCursorResult,
     QueryCursorRow
 } from './types.js';
-import { isPgClient, isPgPoolClient } from './types.js';
+import { isPgClient, isPgPoolClient, isTruthy } from './types.js';
 import { NoticeMessage } from 'pg-protocol/dist/messages.js';
 import { stream } from './stream.js';
 import { executeCursorQuery } from './cursor.js';
 import { streamCursorQuery } from './stream-cursor.js';
+
+/**
+ * @param text A query string or a function name
+ * @param schema The schema to which the function belongs
+ * @param values The function's arguments
+ * @returns Text formatted as a function with the arguments referenced dynamically,
+ * and the arguments parsed.
+ */
+export const formatFunction = (
+    text: string,
+    schema?: string,
+    values?: any[]
+) => {
+    let parsedValues = values
+        ?.map((val) => {
+            if (val === undefined || val === null) return null;
+            const asNum = parseInt(val);
+            if (!isNaN(asNum)) return asNum;
+            if (val === 'true' || val === 'false') return val === 'true';
+            return val;
+        })
+        .filter(isTruthy);
+
+    // Add the select statement to the function name
+    // if it is not in the text
+    if (!text.toLowerCase().includes('select')) {
+        text = 'SELECT * FROM ' + schema + '.' + text;
+    }
+
+    // If the text ends with a close paren, the user has completed
+    // the function call, so we should return
+    if (text.endsWith(')')) {
+        return {
+            text,
+            values: parsedValues
+        };
+    }
+
+    // Add the opening paren if it is not in the text
+    if (!text.includes('(')) {
+        text += '(';
+    }
+
+    // If there are values, add the references
+    if (values && values.length > 0) {
+        let refIndex = 1;
+
+        const args = [...values].map((arg, index) => {
+            if (arg !== null && arg !== undefined) return `$${refIndex++}`;
+            values.splice(index, 1);
+            return 'NULL';
+        });
+
+        text += args.join(',');
+    }
+
+    text += ')';
+
+    return {
+        text,
+        values: parsedValues
+    };
+};
 
 /**
  * Defines the base functionality for clients.
@@ -103,7 +166,11 @@ export class ClientBase {
                 stream?: boolean;
             }
     ): Observable<any> {
-        const streamOptions: QueryStreamConfig = {
+        const { text, values } = config.isFunction
+            ? formatFunction(config.text, config.schema, config.values)
+            : config;
+
+        const streamOpts: QueryStreamConfig = {
             highWaterMark: config.highWaterMark,
             rowMode: config.rowMode,
             types: config.types,
@@ -115,35 +182,33 @@ export class ClientBase {
             // And the user specified to stream the query results
             if (config.stream) {
                 return streamCursorQuery(this._clientNative, {
-                    text: config.text,
-                    values: config.values,
-                    ...streamOptions
+                    text,
+                    values,
+                    ...streamOpts
                 });
             }
 
             // And the user specified to return the query results
-            return executeCursorQuery(
-                this._clientNative,
-                config.text,
-                config.values
-            );
+            return executeCursorQuery(this._clientNative, text, values);
         }
 
         // The query does not return cursors, and the user
         // specified to stream the results
         if (config.stream) {
             return stream<any>(this._clientNative, {
-                text: config.text,
-                values: config.values,
-                ...streamOptions
+                text,
+                values,
+                ...streamOpts
             });
         }
+
+        this._logQueryDebug(text, values);
 
         // The query does not return cursors, and the user
         // did not specify to stream the results
         return new Observable<any>((subscriber) => {
             this._clientNative
-                .query(config.text, config.values)
+                .query(text, values)
                 .then((result) => {
                     subscriber.next(result);
                     subscriber.complete();
@@ -152,6 +217,35 @@ export class ClientBase {
                     subscriber.error(reason);
                 });
         });
+    }
+
+    /**
+     * Formats the parameters of a sql request for printing.
+     * @param poolConfig Pg pool configuration
+     * for instances where the pool does not exist.
+     * @param querSt A postgres query
+     * @param values Values mapped to `queryString`
+     */
+    // @ts-ignore
+    private _logQueryDebug(querSt: string, values: any[] = []) {
+        // console.info(`Querying:`);
+        // const _vals_ = values
+        //     .map((val) => (val === undefined ? 'undefined' : val))
+        //     .join(',');
+        // const queryStringLen = querSt.length;
+        // const valuesLen = _vals_.length;
+        // const longest = queryStringLen > valuesLen ? queryStringLen : valuesLen;
+        // const vals_pad = ' '.repeat(longest - valuesLen);
+        // const _qs_pad_ = ' '.repeat(longest - queryStringLen);
+        // const length = '─'.repeat(longest);
+        // const query = highlight(querSt);
+        // const g = chalk.gray;
+        // console.log(g('┌────────┬─' + length + '─┐'));
+        // console.log(g('│') + ' Query  ' + g('│ ') + query + _qs_pad_ + g(' │'));
+        // console.log(
+        //     g('│') + ' Values ' + g('│ ') + _vals_ + vals_pad + g(' │')
+        // );
+        // console.log(g('└────────┴─' + length + '─┘'));
     }
 
     /**

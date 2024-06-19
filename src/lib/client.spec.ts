@@ -2,6 +2,7 @@ import { concatMap, finalize } from 'rxjs';
 import { Client } from './client.js';
 import { testDbParams } from './internal/connection.js';
 import { sql } from './sql.js';
+import { formatFunction } from './client-base.js';
 
 describe('Client RxJS wrapper', () => {
     test('Can query database table', (done) => {
@@ -133,5 +134,44 @@ describe('Client RxJS wrapper', () => {
                 },
                 complete: () => done()
             });
+    });
+
+    test('Can format function with one arg', () => {
+        const formatted = formatFunction('my_function', 'myschema', ['cat']);
+        expect(formatted.text).toEqual(
+            'SELECT * FROM myschema.my_function($1)'
+        );
+    });
+
+    test('Can format function with many args of different types', () => {
+        const formatted = formatFunction('my_function', 'myschema', [
+            'cat',
+            'true',
+            '25'
+        ]);
+        expect(formatted.text).toEqual(
+            'SELECT * FROM myschema.my_function($1,$2,$3)'
+        );
+        expect(formatted.values).toEqual([
+            expect.any(String),
+            expect.any(Boolean),
+            expect.any(Number)
+        ]);
+    });
+
+    test('Can format function with null arg', () => {
+        const formatted = formatFunction('my_function', 'myschema', [
+            'cat',
+            null,
+            '25'
+        ]);
+        expect(formatted.text).toEqual(
+            'SELECT * FROM myschema.my_function($1,NULL,$2)'
+        );
+        console.log(formatted.values);
+        expect(formatted.values).toEqual([
+            expect.any(String),
+            expect.any(Number)
+        ]);
     });
 });

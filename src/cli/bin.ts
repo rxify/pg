@@ -40,10 +40,7 @@ const cli = yargs(hideBin(process.argv))
             describe: descriptions.s,
             type: 'string',
             conflicts: ['p'],
-            coerce: (script) => {
-                console.log(script);
-                return script;
-            }
+            coerce: (script) => script
         },
         path: {
             alias: 'p',

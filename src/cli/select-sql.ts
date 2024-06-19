@@ -1,11 +1,11 @@
 import { existsSync, readFileSync, readdirSync } from 'fs';
-import { join, resolve } from 'path';
+import { resolve } from 'path';
 import { map } from 'rxjs';
 import { exit } from 'process';
-import { prompt } from './internal.js';
+import { appData, prompt } from './internal.js';
 
 const dirPath = resolve();
-const settingsPath = join(dirPath, '.pg-runner.tmp');
+const settingsPath = appData('pg-runner');
 
 /**
  * Prompts the user to select an SQL file.

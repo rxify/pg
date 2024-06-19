@@ -1,0 +1,29 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "workbench.iconTheme": "material-icon-theme",
+    "material-icon-theme.activeIconPack": "angular",
+    "editor.accessibilitySupport": "off",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "typescript.suggest.completeFunctionCalls": false,
+    "typescript.suggest.completeJSDocs": true,
+    "typescript.preferences.quoteStyle": "single",
+    "typescript.format.semicolons": "insert",
+    "typescript.format.insertSpaceBeforeFunctionParenthesis": false,
+    "typescript.format.insertSpaceBeforeAndAfterBinaryOperators": true,
+    "typescript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": false,
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "prettier.enable": true,
+    "prettier.requireConfig": true,
+    "prettier.configPath": "./.prettierrc",
+    "prettier.ignorePath": "./.prettierignore",
+    "prettier.prettierPath": "./node_modules/prettier",
+    "files.exclude": {
+        "out": false // set this to true to hide the "out" folder with the compiled JS files
+    },
+    "search.exclude": {
+        "out": true // set this to false to include "out" folder in search results
+    },
+    // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
+    "typescript.tsc.autoDetect": "off"
+}

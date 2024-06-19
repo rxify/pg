@@ -1,11 +1,44 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
-import { Observable, concatMap, of } from 'rxjs';
-import inquirer, { QuestionCollection } from 'inquirer';
 import chalk from 'chalk';
+import inquirer, { QuestionCollection } from 'inquirer';
 import os from 'os';
+import { Observable, concatMap, of } from 'rxjs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
+import { platform as _platform } from 'os';
 
 import { Client } from '../lib/client.js';
+
+export const appData = (appName: string) => {
+    const getPlatform = () => {
+        const platform = _platform();
+
+        if (platform === 'win32') {
+            const appData = process.env['APPDATA'];
+            if (appData) return appData;
+            throw new Error('Failed to resolve APPDATA.');
+        }
+
+        const home = process.env['HOME'];
+
+        if (!home) throw new Error('Failed to resolve HOME');
+
+        if (platform === 'darwin') {
+            return join(home, 'Library', 'Application Support');
+        }
+
+        return home;
+    };
+
+    const path = getPlatform();
+
+    if (!existsSync(path)) {
+        mkdirSync(path, {
+            recursive: true
+        });
+    }
+
+    return join(path, '.' + appName);
+};
 
 export function prompt<T>(
     questions: QuestionCollection<any>,
@@ -20,7 +53,7 @@ export function prompt<T>(
     });
 }
 
-const settingsPath = join(os.tmpdir(), 'pg-runner-cli.json');
+const settingsPath = join(os.homedir(), 'pg-runner-cli.json');
 
 const input_user = 'user';
 const input_database = 'database';

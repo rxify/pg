@@ -1,0 +1,9 @@
+{
+    "grammars": [
+        {
+            "language": "sql",
+            "scopeName": "source.sql",
+            "path": "./syntaxes/pg-runner.tmGrammar.json"
+        }
+    ]
+}

@@ -35,7 +35,9 @@ export declare type QueryStreamConfig = {
 export declare type CustomTypesConfig = pg.CustomTypesConfig;
 export declare type QueryConfig<I = any[]> = {
     text: string;
+    schema?: string;
     values?: QueryConfigValues<I>;
+    isFunction?: boolean;
     types?: CustomTypesConfig | undefined;
 };
 

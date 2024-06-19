@@ -2,7 +2,7 @@
   "name": "@rxifyjs/pg",
   "version": "1.2.2",
   "description": "RxJS wrapper for \"pg\"",
-  "main": "public-api.js",
+  "main": "dist/public-api.js",
   "type": "module",
   "homepage": "https://rxify.github.io/pg/",
   "repository": {
@@ -19,6 +19,13 @@
   "workspaces": [
     "./tools/build-docs"
   ],
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "engines": {
+    "vscode": "^1.90.0"
+  },
   "scripts": {
     "build": "npx tsc && node tools/postbuild.js",
     "build:watch": "npx tsc --watch",
@@ -39,6 +46,7 @@
     "pg-protocol": "^1.6.1",
     "pg-query-stream": "^4.6.0",
     "rxjs": "^7.8.1",
+    "sql-highlight": "^4.4.2",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
