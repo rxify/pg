@@ -5,10 +5,14 @@ export const isTruthy = _isTruthy;
 
 export declare type ExecDoc = {
     uri: vscode.Uri;
+    cursors: boolean;
 };
 
 export const isExecDoc = (val: any): val is ExecDoc =>
-    isTruthy(val) && typeof val === 'object' && 'uri' in val;
+    isTruthy(val) &&
+    typeof val === 'object' &&
+    'uri' in val &&
+    'cursors' in val;
 
 export declare type ExecStmt = {
     stmt: string;

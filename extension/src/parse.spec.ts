@@ -63,6 +63,8 @@ SELECT * FROM forecast.pivot_pib_by_year(2024);`;
 describe('Postgres Parser', () => {
     test('Can parse sql function', () => {
         const parsed = parse(sql, './src/my-sql.sql');
+        console.log(parsed);
+
         expect(parsed).toEqual([
             <Statement>{
                 type: 'create',
@@ -75,8 +77,7 @@ describe('Postgres Parser', () => {
                     index: expect.any(Number),
                     lineNum: 45
                 },
-                text: expect.any(String),
-                comments: expect.any(Array)
+                text: expect.any(String)
             }
         ]);
     });

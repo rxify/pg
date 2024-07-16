@@ -20,6 +20,208 @@ export declare type Statement = {
 
 const _ = (val: string) => val.toLowerCase();
 
+export class Parser {
+    private _tokens: Token[];
+    private _statements: Statement[] = [];
+    private _stmtIndex = 0;
+    private _cursor = -1;
+
+    constructor(
+        public sql: string,
+        public source: string
+    ) {
+        this._tokens = tokenize(sql, source);
+    }
+
+    get token(): Token {
+        return this._tokens[this._cursor];
+    }
+
+    get next() {
+        this._cursor = this._cursor + 1;
+        return this._tokens[this._cursor];
+    }
+
+    get type() {
+        return this.token.type;
+    }
+
+    get position() {
+        return this.token.position;
+    }
+
+    get lineNum() {
+        return this.token.lineNum;
+    }
+
+    get value() {
+        return this.token.value;
+    }
+
+    get valLen() {
+        return this.token.value.length;
+    }
+
+    get statement(): Statement {
+        return this._statements[this._stmtIndex];
+    }
+    set statement(statement: Statement) {
+        this._statements[this._stmtIndex] = statement;
+    }
+
+    private _error(message: string) {
+        new PgSyntaxError(this._cursor, this.sql, this.source, message);
+    }
+
+    private _stepBack() {
+        if (this._cursor - 1 >= 0) this._cursor = this._cursor - 1;
+        return this.token;
+    }
+
+    private _consumeWhile(consume: (char: Token) => boolean) {
+        let index = 0;
+        let lineNum = 0;
+
+        while (consume(this.next)) {
+            index = this.position;
+            lineNum = this.lineNum;
+        }
+
+        this._stepBack();
+
+        return { index, lineNum };
+    }
+
+    private _initStatement(type: StatementType) {
+        this.statement ??= <Statement>{};
+        this.statement.type = type;
+        this.statement.start = {
+            index: this.position,
+            lineNum: this.lineNum
+        };
+    }
+
+    private _completeStatement(consume: (char: Token) => boolean) {
+        const { index, lineNum } = this._consumeWhile(consume);
+
+        this.statement.end = {
+            index,
+            lineNum
+        };
+        this.statement.text = this.source.slice(
+            this.statement.start.index,
+            index + this.valLen
+        );
+
+        this._stmtIndex = this._stmtIndex + 1;
+    }
+
+    private _expect(type: TokenType, expected?: string) {
+        const isType = this.token.type === type;
+        const isVal = expected ? _(this.token.value) === _(expected) : true;
+
+        return isType && isVal;
+    }
+
+    private _parseComment() {
+        this.statement ??= <Statement>{};
+
+        const commentVal = this.token.value;
+
+        if (this.value.includes('@returns')) {
+            this.statement.cursors = this.value.includes('cursors');
+        } else if (this.value.includes('@describe')) {
+            this.statement.description = commentVal;
+        } else {
+            this.statement.comments ??= [];
+            this.statement.comments.push(commentVal);
+        }
+    }
+
+    private _consumeFunction() {
+        this.statement.subType === 'function';
+        this._consumeWhile((token) => _(token.value) !== 'end');
+        this.next;
+        this._completeStatement((token) => token.value !== ';');
+    }
+
+    private _parseCreate() {
+        this._initStatement('create');
+        this.next;
+
+        // CREATE SCHEMA
+        if (this._expect('reserved', 'schema')) {
+            this.statement.subType = 'schema';
+            return this._completeStatement((token) => token.value !== ';');
+        }
+
+        // CREATE TABLE
+        if (this._expect('reserved', 'table')) {
+            this.statement.subType = 'table';
+            return this._completeStatement((token) => token.value !== ';');
+        }
+
+        // CREATE OR
+        if (this._expect('reserved', 'or')) {
+            this.statement.subType = 'table';
+            this.next;
+
+            // CREATE OR REPLACE
+            if (this._expect('reserved', 'replace')) {
+                this.next;
+
+                // CREATE OR REPLACE FUNCTION
+                if (this._expect('reserved', 'function')) {
+                    return this._consumeFunction();
+                }
+
+                throw this._error(
+                    `Expected "function"; received ${this.value}`
+                );
+            }
+
+            throw this._error(`Expected "replace"; received ${this.value}`);
+        }
+
+        if (this._expect('reserved', 'function')) {
+            return this._consumeFunction();
+        }
+
+        throw this._error(
+            `Expected "function" or "or"; received ${this.value}.`
+        );
+    }
+
+    parse() {
+        while (this.next) {
+            if (!this.token) continue;
+
+            if (
+                this.type === 'comment' ||
+                this.type === 'describe' ||
+                this.type === 'returns'
+            ) {
+                this._parseComment();
+                continue;
+            }
+
+            if (this._expect('reserved', 'create')) {
+                this._parseCreate();
+                continue;
+            }
+
+            // SELECT
+            if (this._expect('reserved', 'select')) {
+                this._initStatement('select');
+                this._completeStatement((token) => token.value !== ';');
+                continue;
+            }
+        }
+
+        return this._statements;
+    }
+}
+
 export function parse(sql: string, source: string) {
     const tokens = tokenize(sql, source);
     const statements: Statement[] = [];

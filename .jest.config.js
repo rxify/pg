@@ -12,7 +12,11 @@ register({
 export default {
     moduleFileExtensions: ['js', 'json', 'ts'],
     rootDir: '.',
-    modulePaths: ['<rootDir>/src/lib/', '<rootDir>/node_modules'],
+    modulePaths: [
+        '<rootDir>/src',
+        '<rootDir>/node_modules',
+        '<rootDir>/parser'
+    ],
     testRegex: '.*\\.spec\\.ts$',
     transform: {
         '^.+\\.(t|j)s$': 'ts-jest'
@@ -21,6 +25,7 @@ export default {
     moduleNameMapper: {
         '(.+)\\.js': '$1'
     },
+    modulePathIgnorePatterns: ['<rootDir>/dist/'],
     globals: {
         'ts-jest': {
             useESM: true

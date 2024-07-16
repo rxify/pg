@@ -1,0 +1,19 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./dist",
+        "baseUrl": "lib",
+    },
+    "include": [
+        "lib/**/*.ts",
+        "lib/error.ts",
+        "lib/.depracated/parser.ts",
+        "lib/scanner.test.ts",
+        "lib/scanner.ts",
+        "lib/.depracated/grammar/.grammar.ts",
+        "lib/.depracated/statements.ts"
+    ],
+    "exclude": [
+        "lib/**/*.spec.ts"
+    ]
+}

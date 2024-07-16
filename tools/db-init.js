@@ -85,7 +85,7 @@ await oraPromise(drop(), {
 });
 await oraPromise(create(), {
     text: 'Creating test table...',
-    successText: 'Test table "test_table" created',
+    successText: 'Test table "animals" created',
     failText: 'Failed to drop test table'
 });
 await oraPromise(insert(), {
