@@ -1,5 +1,5 @@
 import { Token, TokenType, tokenize } from './tokenize';
-import { PgSyntaxError } from './parser/syntax-error';
+import { PgSyntaxError } from './syntax-error';
 
 export declare type StatementType = 'select' | 'create';
 export declare type StatementSubType = 'table' | 'schema' | 'function';

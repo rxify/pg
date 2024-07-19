@@ -8,6 +8,9 @@
 		"downlevelIteration": true
 	},
 	"include": [
-		"./src/*.ts"
+		"./src/*.ts",
+		"src/.parser.v1/tokenize.spec.ts",
+		"src/.parser.v1/parse.ts",
+		"src/.parser.v1/parse.spec.ts"
 	]
 }

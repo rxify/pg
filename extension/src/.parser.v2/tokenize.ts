@@ -1,6 +1,5 @@
-import { punctuation, word } from './regexp.js';
+import { word } from './regexp.js';
 import { Token, TokenType } from './types.js';
-import { PG_KEYWORDS } from './keywords/kwlist.js';
 
 export const tokenize = (rawSQL: string) => {
     const tokens: Token[] = [];
@@ -26,24 +25,16 @@ export const tokenize = (rawSQL: string) => {
             return false;
         }
 
-        static if(type: TokenType, char: string, comparator: RegExp): boolean;
-        static if(_type: TokenType, char: string, comparator: RegExp) {
+        static if(type: TokenType, char: string, comparator: RegExp) {
             if (comparator.test(char)) {
                 const value = Consume.while(char, (char) =>
                     comparator.test(char)
                 ).trim();
-
-                const type = PG_KEYWORDS.has(value.toUpperCase())
-                    ? TokenType.KEYWORD
-                    : _type;
-
                 tokens.push({
                     type,
                     value,
-                    position: $.posn,
-                    keyword: PG_KEYWORDS.get(value.toUpperCase())
+                    position: $.posn
                 });
-
                 return true;
             }
 
@@ -67,29 +58,9 @@ export const tokenize = (rawSQL: string) => {
     while ((char = chars.shift())) {
         if (/\s|\t|\n/.test(char)) continue;
 
-        if (char === '-') {
-            const posn = $.posn;
-            const nextChar = chars.shift();
-
-            if (!nextChar) continue;
-
-            if (nextChar === '-') {
-                tokens.push({
-                    position: posn,
-                    type: TokenType.COMMENT,
-                    value: Consume.while('--', (char) => char !== '\n')
-                });
-                continue;
-            }
-
-            chars.unshift(nextChar);
-            chars.unshift(char);
-        }
-
-        if (Consume.if(TokenType.PUNCTUATION, char, punctuation)) continue;
-        if (Consume.if(TokenType.STRING, char, word)) continue;
-        if (Consume.if(TokenType.GROUP_OPEN, char, /\{|\(|\]/)) continue;
-        if (Consume.if(TokenType.GROUP_CLOSE, char, /\}|\)|\[/)) continue;
+        if (Consume.if(TokenType.WORD, char, word)) continue;
+        if (Consume.if(TokenType.GROUP_OPEN, char, /\{/)) continue;
+        if (Consume.if(TokenType.GROUP_CLOSE, char, /\}/)) continue;
         if (Consume.one(TokenType.REF_CHAR, char, '@')) continue;
 
         tokens.push({

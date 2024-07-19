@@ -10,6 +10,10 @@
  *
  * @publicApi
  */
-export const sql = (sql: ReadonlyArray<string>) => {
-    return sql[0].trim();
+export const sql = (literals: TemplateStringsArray, ...vars: string[]) => {
+    const results = literals.raw.map((segment, index) => {
+        return segment.trim() + (vars[index] ?? '');
+    });
+
+    return results.join('\n');
 };

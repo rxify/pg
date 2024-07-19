@@ -1,5 +1,3 @@
-import { PG_KEYWORD } from 'keywords/kwlist.js';
-
 export enum TokenType {
     CLOSE,
     GROUP_OPEN,
@@ -10,9 +8,8 @@ export enum TokenType {
     OTHER,
     REPEATABLE,
     REQUIRED,
-    STRING,
-    COMMENT,
-    PUNCTUATION,
+    WORD,
+
     REF_CHAR,
     REFERENCE_OPEN
 }
@@ -22,7 +19,7 @@ export type Token = {
     value: string;
     position: number;
     children?: Token[];
-    keyword?: PG_KEYWORD;
+    options?: string[];
 };
 
 export type Node = {

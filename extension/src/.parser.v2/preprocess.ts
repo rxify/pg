@@ -88,7 +88,7 @@ export const preprocessSQL = (rawSQL: string, path: string) => {
         }
 
         private static _body(startPosn: number) {
-            let bodyTokens = [];
+            let bodyTokens: Token[] = [];
 
             let next: Token | undefined;
             while ((next = tokens.shift())) {
@@ -156,7 +156,7 @@ export const preprocessSQL = (rawSQL: string, path: string) => {
                 throw Err.null('reference', open);
             }
 
-            if (name.type !== TokenType.STRING) {
+            if (name.type !== TokenType.WORD) {
                 throw Err.match(
                     `a 'string'`,
                     TokenType[name.type],

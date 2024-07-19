@@ -1,6 +1,5 @@
-import { punctuation, word } from './regexp.js';
+import { word } from './regexp.js';
 import { Token, TokenType } from './types.js';
-import { PG_KEYWORDS } from './keywords/kwlist.js';
 
 export const tokenize = (rawSQL: string) => {
     const tokens: Token[] = [];
@@ -13,6 +12,14 @@ export const tokenize = (rawSQL: string) => {
     }
 
     class Consume {
+        /**
+         * Evaluates if `char === expected`. If `true`, pushes a new token
+         * with type `type` into `tokens`.
+         * @param type An expected token type
+         * @param char A character to evaluate
+         * @param expected An expected character value
+         * @returns `true` if `char === expected`; otherwise, `false`
+         */
         static one(type: TokenType, char: string, expected: string) {
             if (char === expected) {
                 tokens.push({
@@ -26,30 +33,37 @@ export const tokenize = (rawSQL: string) => {
             return false;
         }
 
-        static if(type: TokenType, char: string, comparator: RegExp): boolean;
-        static if(_type: TokenType, char: string, comparator: RegExp) {
+        /**
+         * Matches `char` against `comparator`. If `true`, consumes tokens from
+         * `tokens` and pushes them into `tokens` while the shifted tokens are
+         * matched with `comparator`.
+         * @param type An expected token type
+         * @param char A character to evaluate
+         * @param comparator A regular expression used to evaluate `char`
+         * @returns `true` if `comparator.test` evaluates to true; otherwise, `false`
+         */
+        static if(type: TokenType, char: string, comparator: RegExp) {
             if (comparator.test(char)) {
-                const value = Consume.while(char, (char) =>
+                const value = this.while(char, (char) =>
                     comparator.test(char)
                 ).trim();
-
-                const type = PG_KEYWORDS.has(value.toUpperCase())
-                    ? TokenType.KEYWORD
-                    : _type;
-
                 tokens.push({
                     type,
                     value,
-                    position: $.posn,
-                    keyword: PG_KEYWORDS.get(value.toUpperCase())
+                    position: $.posn
                 });
-
                 return true;
             }
 
             return false;
         }
 
+        /**
+         * Concats `chars` shifted from `tokens` to `char` until
+         * `fn` evaluates false, returning the concatenated string.
+         * @param char A character
+         * @param fn A function that evaluates characters shifted off `tokens`
+         */
         static while(char: string, fn: (char: string) => boolean) {
             let value = char;
 
@@ -63,33 +77,15 @@ export const tokenize = (rawSQL: string) => {
         }
     }
 
+    /** The char being currently evaluated. */
     let char: string | undefined;
+
     while ((char = chars.shift())) {
         if (/\s|\t|\n/.test(char)) continue;
 
-        if (char === '-') {
-            const posn = $.posn;
-            const nextChar = chars.shift();
-
-            if (!nextChar) continue;
-
-            if (nextChar === '-') {
-                tokens.push({
-                    position: posn,
-                    type: TokenType.COMMENT,
-                    value: Consume.while('--', (char) => char !== '\n')
-                });
-                continue;
-            }
-
-            chars.unshift(nextChar);
-            chars.unshift(char);
-        }
-
-        if (Consume.if(TokenType.PUNCTUATION, char, punctuation)) continue;
-        if (Consume.if(TokenType.STRING, char, word)) continue;
-        if (Consume.if(TokenType.GROUP_OPEN, char, /\{|\(|\]/)) continue;
-        if (Consume.if(TokenType.GROUP_CLOSE, char, /\}|\)|\[/)) continue;
+        if (Consume.if(TokenType.WORD, char, word)) continue;
+        if (Consume.if(TokenType.GROUP_OPEN, char, /\{/)) continue;
+        if (Consume.if(TokenType.GROUP_CLOSE, char, /\}/)) continue;
         if (Consume.one(TokenType.REF_CHAR, char, '@')) continue;
 
         tokens.push({
