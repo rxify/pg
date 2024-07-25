@@ -15,7 +15,7 @@ export type {
     QueryStreamConfig
 } from './lib/types.js';
 export { isQueryArrayConfig, isQueryConfig } from './lib/types.js';
-export { sql } from './lib/sql.js';
 export { stream } from './lib/stream.js';
 export { executeCursorQuery } from './lib/cursor.js';
 export { streamCursorQuery } from './lib/stream-cursor.js';
+export { sql } from './tspg/sql.js';

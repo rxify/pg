@@ -13,7 +13,8 @@ import readline from 'node:readline';
 import yargs from 'yargs';
 
 import { InitializeParams, initialize } from './internal.js';
-import { executeQuery } from './execute.js';
+import { Query } from './execute.js';
+import { isPgNativeError } from './error.js';
 
 const appVerison = () => {
     const dir = dirname(fileURLToPath(import.meta.url));
@@ -54,7 +55,10 @@ const cli = yargs(hideBin(process.argv))
                 }
 
                 try {
-                    return readFileSync(path, 'utf-8');
+                    return {
+                        path,
+                        text: readFileSync(path, 'utf-8')
+                    };
                 } catch {
                     throw new Error(`Failed to read file at ${path}.`);
                 }
@@ -86,6 +90,10 @@ const cli = yargs(hideBin(process.argv))
     .version(appVerison())
     .help()
     .fail((msg, err) => {
+        if (isPgNativeError(err)) {
+            console.error(chalk.red(err));
+        }
+
         if (isNativeError(err)) {
             console.error(chalk.red(err.message));
             process.exit(1);
@@ -111,7 +119,7 @@ if (cliArgs.psql) {
     ) => {
         rl.question('psql=# ', (text) => {
             if (text === 'exit') exit();
-            executeQuery(config, text).subscribe({
+            new Query(config, text).execute().subscribe({
                 complete: () => psql(config, rl)
             });
         });
@@ -126,13 +134,14 @@ if (cliArgs.psql) {
     initialize()
         .pipe(
             concatMap((config) =>
-                executeQuery(
+                new Query(
                     config,
-                    cliArgs.script ?? cliArgs.path,
+                    cliArgs.script ?? cliArgs.path?.text,
+                    cliArgs.path?.path,
                     cliArgs.cursors,
                     cliArgs.format as any,
                     cliArgs.values ? cliArgs.values : undefined
-                )
+                ).execute()
             )
         )
         .subscribe();

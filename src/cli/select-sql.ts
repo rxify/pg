@@ -1,8 +1,9 @@
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { resolve } from 'path';
-import { map } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { exit } from 'process';
 import { appData, prompt } from './internal.js';
+import type { QueryText } from './execute.js';
 
 const dirPath = resolve();
 const settingsPath = appData('pg-runner');
@@ -11,7 +12,7 @@ const settingsPath = appData('pg-runner');
  * Prompts the user to select an SQL file.
  * @returns The path to an SQL file and whether the file returns cursors
  */
-export function selectSqlCli() {
+export function selectSqlCli(): Observable<QueryText> {
     let recent = existsSync(settingsPath)
         ? JSON.parse(readFileSync(settingsPath, 'utf-8')).recent
         : null;
@@ -27,7 +28,7 @@ export function selectSqlCli() {
         exit(0);
     }
 
-    const select_file = 'select_file';
+    const select_file = 'text';
     const cursor_res = 'cursor_res';
 
     return prompt<{
