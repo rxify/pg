@@ -40,8 +40,9 @@
   "author": "Alexander Porrello",
   "license": "MIT",
   "dependencies": {
+    "@inquirer/prompts": "^5.3.4",
     "chalk": "^5.3.0",
-    "inquirer": "^9.2.23",
+    "console-table-printer": "^2.12.1",
     "pg": "^8.12.0",
     "pg-protocol": "^1.6.1",
     "pg-query-stream": "^4.6.0",
@@ -55,7 +56,6 @@
     "@databases/pg-typed": "^4.4.1",
     "@microsoft/api-documenter": "^7.25.3",
     "@microsoft/api-extractor": "^7.47.0",
-    "@types/inquirer": "^9.0.7",
     "@types/jest": "^29.5.5",
     "@types/node": "^20.14.2",
     "@types/pg": "^8.11.6",

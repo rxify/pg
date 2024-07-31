@@ -1,13 +1,22 @@
 {
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
+		"rootDir": "src",
 		"module": "commonjs",
 		"target": "ESNext",
 		"removeComments": true,
 		"outDir": "./out",
-		"downlevelIteration": true
+		"downlevelIteration": true,
+		"skipDefaultLibCheck": true
 	},
 	"include": [
-		"./src/*.ts"
+		"src/extension.ts"
+	],
+	"exclude": [
+		"**/.deprecated",
+		"node_modules",
+		".vscode-test",
+		"src/run-sql-webview/webview",
+		"../node_modules"
 	]
 }

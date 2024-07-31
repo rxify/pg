@@ -1,5 +1,5 @@
-import { PgSyntaxError } from './parser/syntax-error';
-import { reserved } from './parser/reserved';
+import { PgSyntaxError } from './syntax-error';
+import { reserved } from './reserved';
 
 export declare type TokenType =
     | '$'

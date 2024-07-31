@@ -5,7 +5,6 @@ import chalk from 'chalk';
 import { Client } from '../lib/client.js';
 import { ClientConfig, QueryCursorResult, QueryResult } from '../lib/types.js';
 import { prettyPrintPgError } from './error.js';
-import { selectSqlCli } from '../cli/select-sql.js';
 
 export declare type QueryText = {
     cursor_res?: boolean;
@@ -41,7 +40,15 @@ export class Query {
     public execute() {
         const command = (() => {
             const text = this.text;
-            if (!text) return selectSqlCli();
+            if (!text) {
+                console.error(
+                    chalk.red(
+                        'You must provide a valid commend.' +
+                            ' Run --help for more information.'
+                    )
+                );
+                exit();
+            }
             return of({
                 cursor_res: this.cursors,
                 text

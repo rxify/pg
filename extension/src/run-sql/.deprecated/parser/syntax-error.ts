@@ -1,5 +1,4 @@
-import { Color } from '../color';
-import { isTruthy } from '../truthy';
+import { chalk, isTruthy } from '../../../util';
 
 export const isPgSyntaxError = (
     val: PgSyntaxError | any
@@ -71,16 +70,16 @@ export class PgSyntaxError extends SyntaxError {
 
     override toString() {
         return (
-            Color.blue(this.source) +
+            chalk.blue(this.source) +
             (this.lineNumber
-                ? Color.white(':') +
-                  Color.yellow(this.lineNumber.row) +
-                  Color.white(':') +
-                  Color.yellow(this.lineNumber.col)
+                ? chalk.white(':') +
+                  chalk.yellow(this.lineNumber.row) +
+                  chalk.white(':') +
+                  chalk.yellow(this.lineNumber.col)
                 : '') +
-            Color.gray(': ') +
-            Color.white(this.message) +
-            (this.context ? '\n\n' + Color.white(this.context) + '\n' : '\n')
+            chalk.gray(': ') +
+            chalk.white(this.message) +
+            (this.context ? '\n\n' + chalk.white(this.context) + '\n' : '\n')
         );
     }
 
@@ -111,7 +110,7 @@ export class PgSyntaxError extends SyntaxError {
 
             return [
                 ...contextBefore,
-                Color.red(underline),
+                chalk.red(underline),
                 ...contextAfter
             ].join('\n');
         }

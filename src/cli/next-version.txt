@@ -1,0 +1,74 @@
+
+// yargs(hideBin(process.argv))
+//     .command(
+//         'exec <path|script>',
+//         'Execute a local .sql file given an absolute path relative' +
+//             'to the current directory or a SQL script wrapped in double-quotes.',
+//         (yargs) => {
+//             return yargs
+//                 .positional('<path|script>', {
+//                     describe:
+//                         'The absolute path relative to the current directory' +
+//                         'or an SQL script wrapped in double-quotes.',
+//                     demandOption: 'path'
+//                 })
+//                 .options({
+//                     format: {
+//                         alias: 'f',
+//                         describe:
+//                             'The format of the results printed to the console.',
+//                         choices: ['table', 'json'],
+//                         default: 'table'
+//                     },
+//                     cursors: {
+//                         alias: 'c',
+//                         describe:
+//                             'Include if the provided path or script returns cursors.'
+//                     },
+//                     values: {
+//                         alias: 'v',
+//                         describe:
+//                             `Space-separated values that correspond with script` +
+//                             `or path.You must escape dynamic references in your query (i.e. /$1, /$2).`,
+//                         array: true,
+//                         string: true
+//                     }
+//                 });
+//         },
+//         ({ format, path, values }) => {
+//             const pathOrString = <string>path;
+
+//             if (isPathlike(pathOrString)) {
+                
+//             }
+
+//             const absolutePath = resolve(<string>path);
+
+//             if (!existsSync(absolutePath)) {
+//                 console.error(
+//                     chalk.red('Script does not exist at ' + absolutePath + '.')
+//                 );
+//                 exit();
+//             }
+//             console.info(format, path, values);
+//         }
+//     )
+//     .command('pgsql', 'Opens a psql session.', (yargs) => yargs)
+//     .version(appVerison())
+//     .fail((msg, err) => {
+//         if (isPgNativeError(err)) {
+//             console.error(chalk.red(err));
+//         }
+
+//         if (isNativeError(err)) {
+//             console.error(chalk.red(err.message));
+//             process.exit(1);
+//         }
+
+//         if (typeof err === 'string') {
+//             process.exit(1);
+//         }
+
+//         if (msg) console.error(chalk.red(msg));
+//     })
+//     .parse();
