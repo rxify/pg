@@ -41,13 +41,13 @@ const command = async (uriOrStmt: ExecDoc | ExecStmt) => {
         const document = await vscode.workspace.openTextDocument(uri);
         const { returnsCursors } = parseSqlDoc(document.getText());
 
-        command = /**/ `pg-runner --path ${uri.path}`;
+        command = /**/ `pg-runner exec ${uri.path}`;
 
         if (returnsCursors) {
             command += ' --cursors';
         }
     } else {
-        command = /**/ `pg-runner --script "${uriOrStmt.stmt}"`;
+        command = /**/ `pg-runner exec "${uriOrStmt.stmt}"`;
 
         if (uriOrStmt.cursors) {
             command += ' --cursors';
@@ -61,6 +61,6 @@ const command = async (uriOrStmt: ExecDoc | ExecStmt) => {
 
 export const registerRunSql = (context: vscode.ExtensionContext) => {
     context.subscriptions.push(
-        vscode.commands.registerCommand('extension.runSql', command)
+        vscode.commands.registerCommand('pgRunner.runSql', command)
     );
 };

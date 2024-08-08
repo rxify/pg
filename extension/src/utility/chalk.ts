@@ -1,25 +1,4 @@
-import { join } from 'path';
-import vscode, { Uri, Webview } from 'vscode';
-
-export const isTruthy = <T>(val: T | null | undefined): val is NonNullable<T> =>
-    val !== undefined && val !== null;
-
-export function joinPath(
-    uri: vscode.Uri,
-    ...pathFragment: string[]
-): vscode.Uri {
-    // Reimplementation of
-    // https://github.com/microsoft/vscode/blob/b251bd952b84a3bdf68dad0141c37137dac55d64/src/vs/base/common/uri.ts#L346-L357
-    // with Node.JS path. This is a temporary workaround for https://github.com/eclipse-theia/theia/issues/8752.
-    if (!uri.path) {
-        throw new Error(
-            '[UriError]: cannot call joinPaths on URI without path'
-        );
-    }
-    return uri.with({
-        path: vscode.Uri.file(join(uri.fsPath, ...pathFragment)).path
-    });
-}
+import { isTruthy } from './is-truthy';
 
 /**
  * Console foreground colors.
@@ -55,7 +34,8 @@ export const isColor = (val: unknown): val is Color =>
         val === '\x1b[90m');
 
 /**
- * Console foreground colors.
+ * A very light implementation of `chalk` that is compatibile
+ * with jest.
  */
 export namespace chalk {
     export const Reset: Color = '\x1b[0m',

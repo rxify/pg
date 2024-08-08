@@ -3,8 +3,9 @@ import { exit } from 'process';
 import chalk from 'chalk';
 
 import { Client } from '../lib/client.js';
-import { ClientConfig, QueryCursorResult, QueryResult } from '../lib/types.js';
+import { QueryCursorResult, QueryResult } from '../lib/types.js';
 import { prettyPrintPgError } from './error.js';
+import { activeClientConfig } from './config.js';
 
 export declare type QueryText = {
     cursor_res?: boolean;
@@ -20,6 +21,8 @@ export declare type QueryResponse = {
 export class Query {
     private notices: string[] = [];
 
+    public config = activeClientConfig();
+
     /**
      * Executes a query.
      * @param client A pool client for `psql` or a standalone client for one-off requests.
@@ -29,7 +32,6 @@ export class Query {
      * as a JSON object or as a table. Defaults to `table`.
      */
     constructor(
-        public config: ClientConfig,
         public text?: string,
         public path?: string,
         public cursors: boolean = false,

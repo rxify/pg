@@ -17,12 +17,16 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.runSql",
+        "command": "pgRunner.runSql",
         "title": "Execute Local Postgres Script"
       },
       {
-        "command": "extension.runSqlWebview",
+        "command": "pgRunner.runSqlWebview",
         "title": "@rxify/pg UI"
+      },
+      {
+        "command": "pgRunner.format",
+        "title": "Format PostgreSQL"
       }
     ],
     "languages": [
@@ -43,7 +47,7 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "node ./esbuild.js",
-    "watch": "node ./esbuild.js --watch",
+    "watch": "tsc --watch",
     "pretest": "npm run compile && npm run lint",
     "test": "vscode-test"
   },

@@ -83,14 +83,25 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
         try {
             const commands: PgsqlParserStmt[] = parse(text);
             const stmts = commands
-                .map((command) => ({
-                    text: text.substring(command.RawStmt.stmt_location).trim(),
-                    stmt_len: command.RawStmt.stmt_len,
-                    stmt_location: command.RawStmt.stmt_location
-                }))
+                .map((command) => {
+                    return {
+                        text: text
+                            .substring(
+                                command.RawStmt.stmt_location,
+                                command.RawStmt.stmt_location +
+                                    command.RawStmt.stmt_len +
+                                    1
+                            )
+                            .trim(),
+                        stmt_len: command.RawStmt.stmt_len,
+                        stmt_location: command.RawStmt.stmt_location
+                    };
+                })
                 .map((stmt) => {
-                    const startLn =
-                        lines.findIndex((ln) => ln === stmt.text) + 1;
+                    const startLn = this._lineFromLocation(stmt.text, lines);
+
+                    if (startLn === undefined) return null;
+
                     return this._createCodeLens({
                         startLn,
                         title: 'Run',
@@ -99,7 +110,10 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
                         // @todo - reintroduce escapeString(stmt.text)
                         stmt: stmt.text
                     });
-                });
+                })
+                .filter((stmt) => typeof stmt === 'string');
+
+            // @ts-ignore
             lenses.push(...stmts);
         } catch (e) {
             console.error('Something went wrong when parsing the document.');
@@ -107,6 +121,18 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
         }
 
         return lenses;
+    }
+
+    private _lineFromLocation(stmt: string, lines: string[]) {
+        const cmdLn = stmt.split(/\n/g).shift();
+
+        if (!cmdLn) return;
+
+        const lineNm = lines.findIndex((line) => line === cmdLn);
+
+        if (lineNm === -1) return;
+
+        return lineNm;
     }
 
     /**

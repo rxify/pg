@@ -4,7 +4,7 @@ import { HelloWorldPanel } from './panel/panel';
 
 export const runSqlWebview = (context: vscode.ExtensionContext) => {
     const cmd = vscode.commands.registerCommand(
-        'extension.runSqlWebview',
+        'pgRunner.runSqlWebview',
         () => {
             // const panel = vscode.window.createWebviewPanel(
             //     '@rxify/pg Webview',
