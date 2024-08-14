@@ -7,7 +7,7 @@ import { now } from './time.js';
 
 export declare type PgConfig = {
     include: string[];
-    exlcude?: string[];
+    exclude?: string[];
 };
 
 export async function readConfig() {
@@ -46,7 +46,7 @@ export async function readConfig() {
     }
 
     return await glob(pgconfig.include, {
-        ignore: pgconfig.exlcude,
+        ignore: pgconfig.exclude,
         absolute: true
     });
 }

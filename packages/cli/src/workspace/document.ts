@@ -5,6 +5,7 @@ import { exit } from 'process';
 
 import { parseTable } from './parsers/parse-table.js';
 import { parseSchema } from './parsers/parse-schema.js';
+import { parseSelect } from './parsers/parse-select.js';
 
 export interface ParsedStmt {
     name: string;
@@ -18,7 +19,8 @@ export enum StmtType {
     SCHEMA,
     TABLE,
     VIEW,
-    FUNCTION
+    FUNCTION,
+    SELECT
 }
 
 export declare type Stmt<T extends ParsedStmt = ParsedStmt> = {
@@ -129,6 +131,9 @@ export function parseDocument(path: string) {
         if (/schema/i.test(stmt)) {
             return StmtType.SCHEMA;
         }
+        if (/select/i.test(stmt)) {
+            return StmtType.SELECT;
+        }
 
         console.error(chalk.red('Unknown stmt type'));
         console.error(stmt);
@@ -141,6 +146,8 @@ export function parseDocument(path: string) {
                 return parseTable(stmt, sql);
             case StmtType.SCHEMA:
                 return parseSchema(stmt);
+            case StmtType.SELECT:
+                return parseSelect(stmt, sql);
         }
         // @ts-ignore
         throw `Stmt type "${StmtType[type]}" not implemented`;

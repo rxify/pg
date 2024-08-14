@@ -6,6 +6,7 @@ import {
     StmtType
 } from './document.js';
 import { Schema } from './parsers/parse-schema.js';
+import { Select } from './parsers/parse-select.js';
 import { Table } from './parsers/parse-table.js';
 
 export declare type Project = {
@@ -16,6 +17,7 @@ export declare type Project = {
             [StmtType.SCHEMA]: Record<string, Stmt<Schema>>;
             [StmtType.VIEW]: Record<string, Stmt<ParsedStmt>>;
             [StmtType.FUNCTION]: Record<string, Stmt<ParsedStmt>>;
+            [StmtType.SELECT]: Record<string, Stmt<Select>>;
         }
     >;
     sourceMap: {
@@ -30,7 +32,8 @@ export function loadProject(projectFiles: string[]) {
                 [StmtType.SCHEMA]: {},
                 [StmtType.TABLE]: {},
                 [StmtType.FUNCTION]: {},
-                [StmtType.VIEW]: {}
+                [StmtType.VIEW]: {},
+                [StmtType.SELECT]: {}
             }
         },
         sourceMap: {}

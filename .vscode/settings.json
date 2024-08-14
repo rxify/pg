@@ -32,7 +32,7 @@
     "files.exclude": {
         "out": false, // set this to true to hide the "out" folder with the compiled JS files
         "packages/extension": true,
-        "packages/parser": true
+        "packages/parser": false
     },
     "typescript.tsc.autoDetect": "off",
     "editor.tokenColorCustomizations": {
