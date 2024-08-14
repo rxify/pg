@@ -1,6 +1,6 @@
 ## CLI
 
-`rxpg` is a lightweight alternative to Postgres IDEs.
+`@rxpg/cli` is a lightweight alternative to Postgres IDEs.
 It provides developers with the ability to run SQL scripts and queries
 directly from their VSCode terminal.
 

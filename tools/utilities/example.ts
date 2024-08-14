@@ -4,7 +4,7 @@ import { Cli } from './types.js';
 import { parseCli } from './parse/parse-cli.js';
 
 const cli: Cli = {
-    name: 'pg-runner',
+    name: 'rxpg',
     commands: [
         {
             name: 'exec',

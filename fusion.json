@@ -1,0 +1,38 @@
+{
+    "$schema": "node_modules/@fusion-rx/cli/src/fusion/schema.json",
+    "name": "rxpg",
+    "version": "0.1.0",
+    "newProjectsRoot": "packages",
+    "projects": {
+        "cli": {
+            "projectType": "library",
+            "root": "packages/cli",
+            "sourceRoot": "packages/cli/src",
+            "architect": {
+                "build": {
+                    "builder": "tsc",
+                    "options": {
+                        "outputPath": "dist",
+                        "main": "bin.ts",
+                        "tsConfig": "tsconfig.build.json"
+                    }
+                }
+            }
+        },
+        "pg": {
+            "projectType": "library",
+            "root": "packages/pg",
+            "sourceRoot": "packages/pg/src",
+            "architect": {
+                "build": {
+                    "builder": "tsc",
+                    "options": {
+                        "outputPath": "dist",
+                        "main": "public-api.ts",
+                        "tsConfig": "tsconfig.build.json"
+                    }
+                }
+            }
+        }
+    }
+}

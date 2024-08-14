@@ -6,7 +6,7 @@ const conf = JSON.parse(readFileSync(resolve('package.json'), 'utf-8'));
 delete conf.devDependencies;
 delete conf.scripts;
 delete conf.workspaces;
-conf.bin['pg-runner'] = 'cli/bin.js';
+conf.bin['rxpg'] = 'cli/bin.js';
 
 writeFileSync(resolve('dist/package.json'), JSON.stringify(conf, null, 4));
 cpSync(resolve('README.md'), resolve('dist', 'README.md'));

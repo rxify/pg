@@ -30,7 +30,9 @@
         "out": true // set this to false to include "out" folder in search results
     },
     "files.exclude": {
-        "out": false // set this to true to hide the "out" folder with the compiled JS files
+        "out": false, // set this to true to hide the "out" folder with the compiled JS files
+        "packages/extension": true,
+        "packages/parser": true
     },
     "typescript.tsc.autoDetect": "off",
     "editor.tokenColorCustomizations": {

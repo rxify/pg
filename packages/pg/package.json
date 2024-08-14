@@ -1,0 +1,40 @@
+{
+    "name": "@rxpg/pg",
+    "version": "1.2.20",
+    "description": "RxJS wrapper for \"pg\"",
+    "author": "Alexander Porrello",
+    "license": "MIT",
+    "main": "./src/public-api.js",
+    "type": "module",
+    "homepage": "https://rxify.github.io/pg/",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/rxify/pg.git"
+    },
+    "bugs": {
+        "url": "https://github.com/rxify/pg/issues",
+        "email": "alexporrello@gmail.com"
+    },
+    "scripts": {
+        "build": "npx parcel build",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:cov": "jest --coverage"
+    },
+    "dependencies": {
+        "pg": "^8.12.0",
+        "pg-protocol": "^1.6.1",
+        "pg-query-stream": "^4.6.0",
+        "rxjs": "^7.8.1"
+    },
+    "devDependencies": {
+        "@databases/pg": "^5.5.0",
+        "@databases/pg-test": "^3.1.2",
+        "@databases/pg-typed": "^4.4.1",
+        "@types/node": "^20.14.2",
+        "@types/pg": "^8.11.6",
+        "rimraf": "^5.0.7",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.4.5"
+    }
+}

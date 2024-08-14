@@ -13,11 +13,6 @@
             "jest",
             "node"
         ],
-        "paths": {
-            "~/*": [
-                "src/lib/*"
-            ]
-        },
         "baseUrl": "packages",
         "declaration": true,
         "declarationMap": true,
@@ -45,7 +40,7 @@
         "resolveJsonModule": true,
         "isolatedModules": true
     },
-    "include": [
-        "src/**/*.ts",
+    "exclude": [
+        "./dist/*"
     ]
 }
