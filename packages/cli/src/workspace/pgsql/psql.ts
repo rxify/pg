@@ -1,7 +1,7 @@
 import readline from 'node:readline';
 import { exit } from 'node:process';
 
-import { Query } from '../execute.js';
+import { Query } from '../../execute.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 

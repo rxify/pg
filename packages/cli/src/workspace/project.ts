@@ -8,6 +8,7 @@ import {
 import { Schema } from './parsers/parse-schema.js';
 import { Select } from './parsers/parse-select.js';
 import { Table } from './parsers/parse-table.js';
+import { View } from './parsers/parse-view.js';
 
 export declare type Project = {
     commands: Record<
@@ -15,7 +16,7 @@ export declare type Project = {
         {
             [StmtType.TABLE]: Record<string, Stmt<Table>>;
             [StmtType.SCHEMA]: Record<string, Stmt<Schema>>;
-            [StmtType.VIEW]: Record<string, Stmt<ParsedStmt>>;
+            [StmtType.VIEW]: Record<string, Stmt<View>>;
             [StmtType.FUNCTION]: Record<string, Stmt<ParsedStmt>>;
             [StmtType.SELECT]: Record<string, Stmt<Select>>;
         }

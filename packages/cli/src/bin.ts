@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import { isNativeError } from 'util/types';
 
 import { isPgNativeError } from './error.js';
-import { registerPsql } from './pgsql/command.js';
+import { registerPsql } from './workspace/pgsql/command.js';
 import { registerInsert } from './insert/command.js';
 import { registerExec } from './exec/command.js';
 import { registerConfig } from './config/command.js';
@@ -27,12 +27,14 @@ cli.fail((msg, err) => {
         console.error(err);
     }
     if (isNativeError(err)) {
-        console.error(err.message);
+        console.error(err);
         process.exit(1);
     }
     if (typeof err === 'string') {
+        console.error(err);
         process.exit(1);
     }
+
     if (msg) console.error(msg);
 })
     .version(

@@ -6,6 +6,7 @@ import { exit } from 'process';
 import { parseTable } from './parsers/parse-table.js';
 import { parseSchema } from './parsers/parse-schema.js';
 import { parseSelect } from './parsers/parse-select.js';
+import { parseView } from './parsers/parse-view.js';
 
 export interface ParsedStmt {
     name: string;
@@ -125,15 +126,10 @@ export function parseDocument(path: string) {
     }
 
     function getStmtType(stmt: string) {
-        if (/table/i.test(stmt)) {
-            return StmtType.TABLE;
-        }
-        if (/schema/i.test(stmt)) {
-            return StmtType.SCHEMA;
-        }
-        if (/select/i.test(stmt)) {
-            return StmtType.SELECT;
-        }
+        if (/table/i.test(stmt)) return StmtType.TABLE;
+        if (/schema/i.test(stmt)) return StmtType.SCHEMA;
+        if (/view/i.test(stmt)) return StmtType.VIEW;
+        if (/select/i.test(stmt)) return StmtType.SELECT;
 
         console.error(chalk.red('Unknown stmt type'));
         console.error(stmt);
@@ -147,7 +143,9 @@ export function parseDocument(path: string) {
             case StmtType.SCHEMA:
                 return parseSchema(stmt);
             case StmtType.SELECT:
-                return parseSelect(stmt, sql);
+                return parseSelect(sql);
+            case StmtType.VIEW:
+                return parseView(stmt, sql);
         }
         // @ts-ignore
         throw `Stmt type "${StmtType[type]}" not implemented`;
