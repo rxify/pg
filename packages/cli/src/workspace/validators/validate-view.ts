@@ -5,10 +5,7 @@ import { View } from '../parsers/parse-view.js';
 
 export function validateViewStmt(
     stmt: Stmt<View>,
-    // @ts-ignore
     views: Record<string, Stmt<View>>,
-    // @ts-ignore
-
     tables: Record<string, Stmt<Table>>,
     sql: string
 ) {
@@ -16,9 +13,6 @@ export function validateViewStmt(
     const errors: PgSyntaxError[] = [];
 
     const { name, aliases, columnRefs } = stmt.parsed;
-    // console.log(
-    // JSON.stringify({ name, aliases, columnNames, columnRefs }, null, 4)
-    // );
 
     type LocalRef = {
         reference: string;
