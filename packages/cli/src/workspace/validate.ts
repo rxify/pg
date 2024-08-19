@@ -1,5 +1,7 @@
 import { CommandType, StmtType } from './document.js';
 import { PgSyntaxError } from './error.js';
+import { TokenType } from './grammar/pg-tokenizer.js';
+import { olen } from './parsers/util.js';
 import { Project } from './project.js';
 import { now } from './time.js';
 import { validateTableStmt } from './validators/validate-table.js';
@@ -21,13 +23,33 @@ export function validate(project: Project) {
         );
     });
 
+    viewsArr.forEach((view) => {
+        if (olen(view.parsed.referencesByColumn) === 1) {
+            const { value } = view.parsed.referencesByColumn[0];
+            if (value === '*') {
+                const { ref } = view.parsed.aliases[0];
+                if (!ref) throw '';
+                if (!tables[ref.value]) throw '';
+                const columns = tables[ref.value].parsed.columns.map((col) => {
+                    return {
+                        position: ref.position,
+                        type: TokenType.COLUMN,
+                        value: col.colname
+                    };
+                });
+                view.parsed.referencesByColumn = columns;
+                view.parsed.referencesByColumn = columns;
+            }
+        }
+    });
+
     viewsArr.forEach((view) =>
         errors.push(
             ...validateViewStmt(
                 view,
                 views,
                 tables,
-                project.sourceMap[view.position]
+                project.sourceMap[view.path]
             )
         )
     );

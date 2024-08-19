@@ -64,7 +64,7 @@ export function parseDocument(path: string) {
                 );
 
                 const type = getStmtType(stmt);
-                const parsed = parse(type, stmt, file);
+                const parsed = parse(type, stmt, file, path);
 
                 stmts.push({
                     name: parsed.name,
@@ -136,16 +136,21 @@ export function parseDocument(path: string) {
         exit();
     }
 
-    function parse(type: StmtType, stmt: string, sql: string): ParsedStmt {
+    function parse(
+        type: StmtType,
+        stmt: string,
+        sql: string,
+        path: string
+    ): ParsedStmt {
         switch (type) {
             case StmtType.TABLE:
                 return parseTable(stmt, sql);
             case StmtType.SCHEMA:
                 return parseSchema(stmt);
             case StmtType.SELECT:
-                return parseSelect(sql);
+                return parseSelect(sql, path);
             case StmtType.VIEW:
-                return parseView(stmt, sql);
+                return parseView(stmt, sql, path);
         }
         // @ts-ignore
         throw `Stmt type "${StmtType[type]}" not implemented`;

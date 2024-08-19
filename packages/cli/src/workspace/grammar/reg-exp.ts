@@ -10,3 +10,7 @@ export function parseRef(refStr: string) {
 }
 
 export const $as = /\bas\b/i;
+
+export function $word(word: string) {
+    return new RegExp('\\b' + word + '\\b', 'i');
+}

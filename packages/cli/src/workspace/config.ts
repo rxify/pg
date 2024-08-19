@@ -1,6 +1,5 @@
 import chalk from 'chalk';
 import { existsSync, readFileSync } from 'fs';
-import { glob } from 'glob';
 import { resolve } from 'path';
 import { exit } from 'process';
 import { now } from './time.js';
@@ -34,19 +33,12 @@ export async function readConfig() {
         exit();
     }
 
-    let pgconfig: PgConfig;
-
     try {
-        pgconfig = JSON.parse(pgconfigRaw);
+        return <PgConfig>JSON.parse(pgconfigRaw);
     } catch (e) {
         console.error(
             now() + chalk.red(`Failed to parse pgconfig.json at ${path}.`)
         );
         exit();
     }
-
-    return await glob(pgconfig.include, {
-        ignore: pgconfig.exclude,
-        absolute: true
-    });
 }

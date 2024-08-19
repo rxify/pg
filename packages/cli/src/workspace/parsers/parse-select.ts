@@ -4,11 +4,12 @@ import { View } from './parse-view.js';
 import { _ } from './util.js';
 import { extractStmtByKeyword } from '../grammar/extract-statements.js';
 import { $ref } from '../grammar/reg-exp.js';
+import { PgSyntaxError } from '../error.js';
 
 export declare type Select = View;
 
-export declare interface Column extends ParsedStmt {
-    refs?: string[];
+export declare interface Column extends Token {
+    reference?: Token;
 }
 
 export declare interface Source extends ParsedStmt {
@@ -71,14 +72,18 @@ export declare interface Alias {
     ref?: Token;
 }
 
-export function parseSelect(doc: string): Select {
+export function parseSelect(doc: string, path: string): Select {
     const tokens = new PgTokenizer([...doc]).tokenize().tokens;
     const stmts = extractStmtByKeyword<SelectStmtKeyword>(
         tokens,
-        selectStmtKeywords
+        selectStmtKeywords,
+        doc,
+        path
     );
 
-    const { columnRefs, columnNames } = parseSelectColumns(stmts.SELECT);
+    const { referencesByColumn, columnNames } = parseSelectColumns(
+        stmts.SELECT
+    );
     const from = parseFromStmt(stmts.FROM);
     const join = parseJoinStmt(stmts.JOIN);
 
@@ -88,15 +93,56 @@ export function parseSelect(doc: string): Select {
 
     return {
         name: 'select',
-        columnRefs,
-        columnNames,
+        referencesByColumn: mapAliases(),
+        columns: columnNames,
         aliases
     };
+
+    function mapAliases(): Column[] {
+        if (aliases.length > 1) {
+            const aliasMap: Record<string, { ref: Token; alias: Token }> = {};
+            aliases.forEach(({ alias, ref }) => {
+                if (!alias) return;
+                if (!ref) return;
+                aliasMap[alias.value] = {
+                    ref,
+                    alias
+                };
+            });
+
+            referencesByColumn.forEach((token) => {
+                if ($ref.test(token.value)) {
+                    const [alias] = token.value.split('.');
+                    (<Column>token).reference = aliasMap[alias].ref;
+                }
+            });
+
+            return referencesByColumn;
+        }
+
+        const { ref, alias } = aliases[0];
+        if (ref && alias) return referencesByColumn;
+
+        if (!ref) {
+            throw new PgSyntaxError(
+                `The reference for alias "${alias?.value}" could not be determined.`,
+                doc,
+                0,
+                path
+            );
+        }
+
+        referencesByColumn.forEach((column) => {
+            (<Column>column).reference = ref;
+        });
+
+        return referencesByColumn;
+    }
 
     function parseSelectColumns(SELECT?: Token[]) {
         const columns: Token[][] = [];
 
-        if (!SELECT) return { columnRefs: [], columnNames: [] };
+        if (!SELECT) return { referencesByColumn: [], columnNames: [] };
         columns.push([]);
 
         let colIndex = 0;
@@ -112,7 +158,7 @@ export function parseSelect(doc: string): Select {
             columns[colIndex].push(token);
         }
 
-        const columnRefs = new Array<Token>();
+        const referencesByColumn = new Array<Token>();
         const columnRefNames = new Array<string>();
         const columnNames = new Array<Token>();
 
@@ -123,26 +169,18 @@ export function parseSelect(doc: string): Select {
                 if ($ref.test(token.value)) {
                     if (!columnRefNames.includes(token.value)) {
                         columnRefNames.push(token.value);
-                        columnRefs.push(token);
+                        referencesByColumn.push(token);
                     }
-                    columnNames.push(token);
                     continue;
                 }
 
-                columnRefs.push(token);
+                columnNames.push(token);
+                referencesByColumn.push(token);
             }
 
             for (let i = 0; i < columns.length; i++) {
                 const token = column[i];
                 if (!token) continue;
-
-                if (/\b(when|then)\b/i.test(token.value)) {
-                    if (!columnRefNames.includes(token.value)) {
-                        columnRefNames.push(token.value);
-                        columnRefs.push(column[(i += 1)]);
-                    }
-                    continue;
-                }
 
                 if (/\bas\b/i.test(token.value)) {
                     i = i + 1;
@@ -150,10 +188,18 @@ export function parseSelect(doc: string): Select {
                     continue;
                 }
 
+                if (/\b(when|then)\b/i.test(token.value)) {
+                    if (!columnRefNames.includes(token.value)) {
+                        columnRefNames.push(token.value);
+                        referencesByColumn.push(column[(i += 1)]);
+                    }
+                    continue;
+                }
+
                 if (/^((\w|_){1,})(?=)\.((\w|_){1,})$/.test(token.value)) {
                     if (!columnRefNames.includes(token.value)) {
                         columnRefNames.push(token.value);
-                        columnRefs.push(token);
+                        referencesByColumn.push(token);
                     }
                     continue;
                 }
@@ -161,7 +207,7 @@ export function parseSelect(doc: string): Select {
         }
 
         return {
-            columnRefs,
+            referencesByColumn,
             columnNames
         };
     }
@@ -179,8 +225,8 @@ export function parseSelect(doc: string): Select {
 
             if ($ref.test(token.value)) {
                 const alias = from[i + 2];
-                if (!alias) return { ref: token };
-                return { alias, ref: token };
+                if (alias) return { alias, ref: token };
+                return { ref: token };
             }
         }
 
@@ -210,10 +256,4 @@ export function parseSelect(doc: string): Select {
 
         return {};
     }
-
-    // return {
-    //     columns: [],
-    //     name: 'select',
-    //     references: {}
-    // };
 }

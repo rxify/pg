@@ -1,5 +1,6 @@
 import { type Stmt } from '../document.js';
 import { PgSyntaxError } from '../error.js';
+import { $ref } from '../grammar/reg-exp.js';
 import { type Table } from '../parsers/parse-table.js';
 import { View } from '../parsers/parse-view.js';
 
@@ -12,91 +13,48 @@ export function validateViewStmt(
     const baseError = new PgSyntaxError('', sql, stmt.position, stmt.path);
     const errors: PgSyntaxError[] = [];
 
-    const { name, aliases, columnRefs } = stmt.parsed;
+    const { name, referencesByColumn } = stmt.parsed;
 
-    type LocalRef = {
-        reference: string;
-        column: string;
-        position: number;
-    };
+    for (let { value: columnName, position, reference } of referencesByColumn) {
+        if (!reference) continue;
 
-    const localRefs = columnRefs
-        .map(({ value, position }): LocalRef | null => {
-            const [ref, alias] = value.split('.');
+        const table = tables[reference.value];
+        const view = views[reference.value];
 
-            const reference = aliases.find((a) => a.alias?.value === ref);
-
-            if (!reference || !reference.ref) {
-                if (aliases.length > 1) {
-                    errors.push(
-                        baseError.fork(
-                            `When referencing multiple tables, you must assign an alias to each table. (${name})`,
-                            position
-                        )
-                    );
-                    return null;
-                }
-
-                const refTable = aliases[0].ref?.value;
-
-                if (!refTable) {
-                    errors.push(
-                        baseError.fork(
-                            `Failed to locate reference table.`,
-                            position
-                        )
-                    );
-                    return null;
-                }
-
-                return {
-                    reference: refTable,
-                    column: value,
-                    position
-                };
-            }
-
-            return {
-                reference: reference.ref.value,
-                column: alias ?? ref,
-                position
-            };
-        })
-        .filter((val): val is LocalRef => {
-            return val !== null;
-        });
-
-    for (let { column, position, reference } of localRefs) {
-        if (!tables[reference] && !views[reference]) {
+        if (!table && !view) {
             errors.push(
                 baseError.fork(
-                    `${name} references a table ${reference} that does not exist.`
+                    `${name} references a table ${reference.value} that does not exist.`
                 )
             );
             continue;
         }
 
-        if (
-            tables[reference]?.parsed.columns.find((col) => {
-                if (col.colname === column) {
-                    return true;
-                }
+        if ($ref.test(columnName)) {
+            columnName = columnName.split('.')[1];
+        }
 
-                return false;
+        if (
+            table?.parsed.columns.find((col) => {
+                return col.colname === columnName;
             })
         ) {
             continue;
         }
 
         if (
-            views[reference]?.parsed.columnNames.find((c) => c.value === column)
+            view?.parsed.columns.find((c) => {
+                return c.value === columnName;
+            })
         ) {
             continue;
         }
 
+        // console.log(view?.parsed.columns, columnName);
+
         errors.push(
             baseError.fork(
-                `Column "${column}" referenced in ${name} does not exist in ${reference}.`,
+                `Column "${columnName}" referenced in ${name} does not exist in ${reference.value}.`,
                 position
             )
         );

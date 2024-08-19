@@ -1,18 +1,17 @@
 import { ParsedStmt } from '../document.js';
-import { Token } from '../grammar/pg-tokenizer.js';
-import { Alias, parseSelect } from './parse-select.js';
+import { Alias, Column, parseSelect } from './parse-select.js';
 
 export declare interface View extends ParsedStmt {
     aliases: Alias[];
-    columnNames: Token[];
-    columnRefs: Token[];
+    columns: Column[];
+    referencesByColumn: Column[];
 }
 
-export function parseView(sql: string, doc: string): View {
+export function parseView(sql: string, doc: string, path: string): View {
     const _sql = sql.toLowerCase();
     const name = sql
         .slice(_sql.indexOf('view') + 'view'.length, _sql.indexOf(' as'))
         .trim();
-    const { aliases, columnNames, columnRefs } = parseSelect(doc);
-    return { name, aliases, columnNames, columnRefs };
+    const { aliases, columns, referencesByColumn } = parseSelect(doc, path);
+    return { name, aliases, columns, referencesByColumn };
 }
